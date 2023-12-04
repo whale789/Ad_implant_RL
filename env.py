@@ -8,10 +8,12 @@ import matplotlib.pyplot as plt
 class Ad_Environment:
     def __init__(self,ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_height,total_step,ad_density):
         self.layer=layer  #广告状态空间索引
-        self.ad_counter=ad_counter   #广告空间总数
-        self.ad_location_x = ad_state_x[self.layer]  # 广告水平位置
+        self.ad_counter=ad_counter-1   #广告空间总数
+        self.ad_state_x=ad_state_x
+        self.ad_state_y=ad_state_y
+        self.ad_location_x = ad_state_x[int(self.layer)]  # 广告水平位置
         # print("00x",self.ad_location_x)
-        self.ad_location_y = ad_state_y[self.layer]  # 广告垂直位置
+        self.ad_location_y = ad_state_y[int(self.layer)]  # 广告垂直位置
         # print("00y",self.ad_location_y)
         self.ad_width=ad_width   #所植入广告的宽度
         self.ad_height=ad_height  #所植入广告的高度
@@ -25,15 +27,27 @@ class Ad_Environment:
     def step(self,action):
         if not action in self.action_space:
             print("该Action不存在")
-        if action==0 and self.current_location_y<max(self.ad_location_y):  #向上移动
-            self.current_location_y+=1
-        elif action==1 and self.current_location_y>min(self.ad_location_y):  #向下移动
-            self.current_location_y-=1
+        else:
+            # print("111:",self.ad_state_x)
+            # print("444",self.layer,self.ad_counter)
+            self.layer+=1
+            if self.layer>self.ad_counter:
+                self.layer=self.layer%self.ad_counter
+            self.current_location_x = self.ad_state_x[self.layer]
+            self.current_location_y = self.ad_state_y[self.layer]
+            # print("222",self.current_location_x)
 
-        if action==3 and self.current_location_x>min(self.ad_location_x):   #向左移动
-            self.current_location_x-=1
-        elif action==4 and self.current_location_x<max(self.ad_location_x):   #向右移动
-            self.current_location_x+=1
+        # if action==0:  #平移
+        #     # self.current_location_y+=1
+        #     self.current_location_x=self.ad_location_x[(self.layer+1)%self.ad_counter]
+        #     self.current_location_y=self.ad_location_y[(self.layer+1)%self.ad_counter]
+        # elif action==1:  #缩放
+        #     # self.current_location_y-=1
+        #     pass
+        # elif action==2:   #旋转
+        #     # self.current_location_x-=1
+        #     pass
+
 
 
         reward=self.calculate_reward()   #奖励函数
@@ -53,7 +67,9 @@ class Ad_Environment:
         reward=0
         density=self.area_density(self.current_location_x,self.current_location_y,self.ad_width,self.ad_height)  #计算该区域的密度
         density_difference=density-self.ad_density
-        reward+= round(density_difference * 0.01, 4)
+        reward+= round(density_difference, 4)
+        print('333',reward)
+        self.ad_density=density
 
         return reward
 
@@ -63,8 +79,8 @@ class Ad_Environment:
         return [cu_location_x,cu_location_y]
     def reset(self):
         layer=random.randint(0,self.ad_counter)
-        self.current_location_x=self.ad_location_x[layer]
-        self.current_location_y=self.ad_location_y[layer]
+        self.current_location_x=self.ad_state_x[layer]
+        self.current_location_y=self.ad_state_y[layer]
         self.current_step=0
         return self.get_state()
 
@@ -72,7 +88,7 @@ class Ad_Environment:
         env = dict()
         x_list = []
         y_list = []
-        with open("Datas/Gaze_txt_files/p001/180._2017-10-13-10-28_ori_0.txt", newline='') as file:
+        with open("Datas/Gaze_txt_files/p001/179._2017-10-13-10-27_ori_0.txt", newline='') as file:
             eye_data_text = file.readlines()
             for line in eye_data_text:
                 eye_list = line.split(',')
@@ -136,7 +152,7 @@ class Ad_Environment:
 
             # 输出密度大小
             print(f"Total Density in the Defined Region: {total_density}")
-            print(f"Average Density in the Defined Region: {average_density}")
+            # print(f"Average Density in the Defined Region: {average_density}")
 
             return total_density
 

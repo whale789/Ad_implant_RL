@@ -7,8 +7,8 @@ import torch.nn.functional as F
 from env import Ad_Environment
 import matplotlib.pyplot as plt
 
-N_Actions=4  #动作数
-N_States=5  #状态数
+N_Actions=3  #动作数
+N_States=2  #状态数
 Memory_Capacity=10 #记忆库容量
 Batch_size=5  #样本数量
 LR=0.01 #学习率
@@ -19,13 +19,14 @@ Gamma=0.9  #奖励折扣
 class DQNNet(torch.nn.Module):  #定义网络
     def __init__(self):
         super(DQNNet,self).__init__()
-        self.fc1=torch.nn.Linear(N_States,50)  #建立第一个全连接层，状态个数神经元到50个神经元
+        self.fc1=torch.nn.Linear(N_States,5)  #建立第一个全连接层，状态个数神经元到50个神经元
         self.fc1.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
-        self.fc2=torch.nn.Linear(50,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
-        self.fc2.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
+        self.out=torch.nn.Linear(5,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
+        self.out.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
     def forward(self,x):   #x为状态
         x=F.relu(self.fc1(x))  #连接输入层到隐藏层，且使用激励函数Relu函数来处理经过隐藏层后的值
         actions_value=self.out(x)  #连接隐藏层到输出层，获得最终的输出值，即动作值
+        # print("111",actions_value)
         return actions_value    #返回动作值
 
 class DQN(object):
@@ -41,15 +42,16 @@ class DQN(object):
         x=torch.unsqueeze(torch.FloatTensor(state),0)  #将x转换为floating point的形式，并在dim=0增加维数为1的维度
         if np.random.uniform()<Epsilon:    #生成一个[0,1]之内的随机数，如果小于Epslion，选择最优动作
             actions_value=self.eval_net.forward(x)  #通过评估网络输入状态x，前向传播获取动作值
-            action=torch.max(actions_value,1)[1].data.numpy   #输出每一行的最大值的索引，并转换为numpy ndarray形式
+            action=torch.max(actions_value,1)[1].data.numpy()   #输出每一行的最大值的索引，并转换为numpy ndarray形式
             action=action[0]  #输出action的第一个数
+            # print("333",action)
         else:  #随机选择动作
             action=np.random.randint(0,N_Actions)  #随机选择动作总数之间的一个动作
         return action
 
     def store_transition(self,s,a,r,s_):   #定义记忆储存函数（这里的输入为一个transition）
         transition=np.hstack((s,[a,r],s_))   #在水平方向拼接数组
-        print("123",transition)
+        # print("123",transition)
         #如果记忆库满了，便覆盖旧的数据
         index=self.memory_counter%Memory_Capacity   #获取transition要置入的行数
         self.memory[index,:]=transition   #置入transition
@@ -80,7 +82,7 @@ class DQN(object):
         #q_next表示不进行反向传播，所以detach表示通过目标网络输出32行b_s_对应的一系列动作值
         q_next=self.target_net(b_s_).detach()
         #q_next.max(1)[0]表示只返回每一行的最大值，不反回索引（长度为32的一个张量）.view表示把之前获得的一维张量变成（Batch_size,1）的形状，最终通过公式获得目标值
-        q_target=b_r+Gamma*q_next(1)[0].view(Batch_size,1)
+        q_target=b_r+Gamma*q_next.max(1)[0].view(Batch_size,1)
         #输入32个评估值和32个目标值，使用均方损失函数
         loss=self.loss_func(q_eval,q_target)
         self.optimizer.zero_grad()   #清空上一步的残余更新参数值
@@ -103,8 +105,8 @@ def main():
     ad_state_x=[random.uniform(ad_width/2,1-(ad_heigth/2)) for _ in range(ad_counter)]
     ad_state_y=[random.uniform(ad_heigth/2,1-(ad_heigth/2)) for _ in range(ad_counter)]
 
-    layer=random.randint(0,ad_counter)
-    print(layer)
+    layer=random.randint(0,ad_counter-1)
+    # print(layer)
     env=Ad_Environment(ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_height=ad_heigth,total_step=100,ad_density=0)
     for i in range(episodes):
         print('Episodes:%s' %i)
@@ -126,6 +128,7 @@ def main():
             if done:
                 print("episode:%s---episode-reward:%s" %(i,episode_reward_sum))
                 break
+        print("111",episode_reward_sum)
 
 
 

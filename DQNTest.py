@@ -169,6 +169,7 @@
 #         self.optimizer.zero_grad()
 #         loss.backward()
 #         self.optimizer.step()
+from random import random
 
 class RTB:
     def __init__(self,ad_state_x,ad_state_y):
