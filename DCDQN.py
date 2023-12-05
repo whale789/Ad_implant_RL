@@ -13,7 +13,7 @@ Memory_Capacity=10 #记忆库容量
 Batch_size=5  #样本数量
 LR=0.01 #学习率
 Epsilon=0.9  #贪心策略
-Target_Replace_iter=100 #目标网络更新频率
+Target_Replace_iter=10 #目标网络更新频率
 Gamma=0.9  #奖励折扣
 
 class DQNNet(torch.nn.Module):  #定义网络
@@ -100,10 +100,10 @@ def main():
     #2023.12.2
     #以下为随机生成的0到1之间的(x,y)坐标，模拟植入广告的中心点，生成5组(x,y)坐标，以及手动固定其width和heigth，因此只考虑平移情况
 
-    ad_width=0.3
+    ad_width=0.2
     ad_heigth=0.2
-    ad_state_x=[random.uniform(ad_width/2,1-(ad_heigth/2)) for _ in range(ad_counter)]
-    ad_state_y=[random.uniform(ad_heigth/2,1-(ad_heigth/2)) for _ in range(ad_counter)]
+    ad_state_x=[random.uniform(0.3+ad_width/2,0.8-(ad_heigth/2)) for _ in range(ad_counter)]
+    ad_state_y=[random.uniform(0.2+ad_heigth/2,0.7-(ad_heigth/2)) for _ in range(ad_counter)]
 
     layer=random.randint(0,ad_counter-1)
     # print(layer)
@@ -128,7 +128,7 @@ def main():
             if done:
                 print("episode:%s---episode-reward:%s" %(i,episode_reward_sum))
                 break
-        print("111",episode_reward_sum)
+        # print("111",episode_reward_sum)
 
 
 

@@ -1,4 +1,5 @@
 import copy
+import os
 import random
 
 import numpy as np
@@ -11,6 +12,8 @@ class Ad_Environment:
         self.ad_counter=ad_counter-1   #广告空间总数
         self.ad_state_x=ad_state_x
         self.ad_state_y=ad_state_y
+        self.density_layer=0
+        self.total_reward=0
         self.ad_location_x = ad_state_x[int(self.layer)]  # 广告水平位置
         # print("00x",self.ad_location_x)
         self.ad_location_y = ad_state_y[int(self.layer)]  # 广告垂直位置
@@ -31,6 +34,9 @@ class Ad_Environment:
             # print("111:",self.ad_state_x)
             # print("444",self.layer,self.ad_counter)
             self.layer+=1
+            self.density_layer+=1
+            if self.density_layer>=36:
+                self.density_layer%=36
             if self.layer>self.ad_counter:
                 self.layer=self.layer%self.ad_counter
             self.current_location_x = self.ad_state_x[self.layer]
@@ -64,14 +70,14 @@ class Ad_Environment:
         #2023.12.1方案：根据广告植入区域的密度进行计算
         #状态为广告的中心点，以及广告的宽度及高度，以此进而对缩放也加以实现
         #reward设为对该区域的密度
-        reward=0
+        # reward=1000
         density=self.area_density(self.current_location_x,self.current_location_y,self.ad_width,self.ad_height)  #计算该区域的密度
         density_difference=density-self.ad_density
-        reward+= round(density_difference, 4)
-        print('333',reward)
+        self.total_reward=round(self.total_reward+round(density_difference, 4)/2,4)
+        # print('333',self.total_reward)
         self.ad_density=density
 
-        return reward
+        return self.total_reward
 
     def get_state(self):   #讲ad_location_x和ad_location_y拼接起来
         cu_location_x=copy.copy(self.current_location_x)
@@ -88,7 +94,11 @@ class Ad_Environment:
         env = dict()
         x_list = []
         y_list = []
-        with open("Datas/Gaze_txt_files/p001/179._2017-10-13-10-27_ori_0.txt", newline='') as file:
+        folder_path = "Datas/Gaze_txt_files/p001"
+        file_list = os.listdir(folder_path)
+        # print(os.path.join(folder_path, file_list[0]))
+        file_path=os.path.join(folder_path,file_list[self.density_layer])
+        with open(file_path, newline='') as file:
             eye_data_text = file.readlines()
             for line in eye_data_text:
                 eye_list = line.split(',')
@@ -125,7 +135,7 @@ class Ad_Environment:
             return 0
         else:
             # 应用核密度估计
-            kde = KernelDensity(bandwidth=0.1)
+            kde = KernelDensity(bandwidth=0.05)
             kde.fit(region_data)
 
             # 计算密度值
@@ -151,7 +161,7 @@ class Ad_Environment:
             # plt.show()
 
             # 输出密度大小
-            print(f"Total Density in the Defined Region: {total_density}")
+            # print(f"Total Density in the Defined Region: {total_density}")
             # print(f"Average Density in the Defined Region: {average_density}")
 
             return total_density
