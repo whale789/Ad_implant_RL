@@ -108,6 +108,7 @@ def main():
     layer=random.randint(0,ad_counter-1)
     # print(layer)
     env=Ad_Environment(ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_height=ad_heigth,total_step=100,ad_density=0)
+    max_reward=float('-inf')
     for i in range(episodes):
         print('Episodes:%s' %i)
         s=env.reset()   #重置环境
@@ -129,6 +130,10 @@ def main():
                 print("episode:%s---episode-reward:%s" %(i,episode_reward_sum))
                 break
         # print("111",episode_reward_sum)
+        model=DQNNet()
+        if episode_reward_sum>max_reward:
+            max_reward=episode_reward_sum
+            torch.save(model.state_dict(),"best_model.pth")
 
 
 
