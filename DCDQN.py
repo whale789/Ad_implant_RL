@@ -135,7 +135,29 @@ def main():
             max_reward=episode_reward_sum
             torch.save(model.state_dict(),"best_model.pth")
 
+def test():
+    ad_counter = 5  # 广告候选空间数量
+    dqn = DQN()
+    model=DQNNet()
+    model.load_state_dict(torch.load('best_model.pth'))
+    model.eval()
+    ad_width = 0.2
+    ad_heigth = 0.2
+    ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
+    ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
+
+    layer = random.randint(0, ad_counter - 1)
+    # print(layer)
+    env = Ad_Environment(ad_state_x, ad_state_y, layer, ad_counter, ad_width, ad_height=ad_heigth, total_step=100,
+                         ad_density=0)
+    s=env.reset()
+    x = torch.unsqueeze(torch.FloatTensor(s), 0)
+    with torch.no_grad():
+        action_probabilities=model(x)
+    choose_action=torch.argmax(action_probabilities).item()
+    print(choose_action)
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    test()
