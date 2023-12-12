@@ -1,3 +1,4 @@
+import os
 import random
 
 import numpy as np
@@ -7,7 +8,7 @@ import torch.nn.functional as F
 from env import Ad_Environment
 import matplotlib.pyplot as plt
 
-N_Actions=3  #动作数
+N_Actions=5  #动作数
 N_States=2  #状态数
 Memory_Capacity=10 #记忆库容量
 Batch_size=5  #样本数量
@@ -90,6 +91,24 @@ class DQN(object):
         self.optimizer.step()   #更新评估网络的所有参数
 
 
+def read_file():
+    folder_path="Datas/Gaze_txt_files"
+    destination_folder_path = "Datas/Gaze_txt_files_Scenes"
+    contents=os.listdir(folder_path)
+    for content in contents:
+        content_path=os.path.join(folder_path,content)
+        if os.path.isdir(content_path):
+            sub_contents=os.listdir(content_path)
+            index=0
+            for sub_content in sub_contents:
+                sub_content_path=os.path.join(content_path,sub_content)
+
+                print(index)
+                index+=1
+                # if os.path.isfile(sub_content_path):
+                #     with open(sub_content_path,'r',newline='') as file:
+                #         file_content=file.readlines()
+
 
 def main():
     episodes=200
@@ -102,12 +121,22 @@ def main():
 
     ad_width=0.2
     ad_heigth=0.2
-    ad_state_x=[random.uniform(0.3+ad_width/2,0.8-(ad_heigth/2)) for _ in range(ad_counter)]
-    ad_state_y=[random.uniform(0.2+ad_heigth/2,0.7-(ad_heigth/2)) for _ in range(ad_counter)]
 
+
+    # ad_state_x=[random.uniform(0.3+ad_width/2,0.8-(ad_heigth/2)) for _ in range(ad_counter)]
+    # ad_state_y=[random.uniform(0.2+ad_heigth/2,0.7-(ad_heigth/2)) for _ in range(ad_counter)]
+    # ad_state_x=random.uniform(0.3+ad_width/2,0.8-(ad_heigth/2))
+    # ad_state_y=random.uniform(0.2+ad_heigth/2,0.7-(ad_heigth/2))
+    ad_state_x=4.5
+    ad_state_y=5.0
     layer=random.randint(0,ad_counter-1)
     # print(layer)
-    env=Ad_Environment(ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_height=ad_heigth,total_step=100,ad_density=0)
+    ad_limit_x=5.0
+    ad_limit_y=4.0
+    ad_limit_width=4.0
+    ad_limit_height=3.0
+    env=Ad_Environment(ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_heigth,ad_limit_x,ad_limit_y,ad_limit_width,ad_limit_height,
+                       total_step=100,ad_density=0)
     max_reward=float('-inf')
     for i in range(episodes):
         print('Episodes:%s' %i)
@@ -160,4 +189,5 @@ def test():
 
 if __name__ == "__main__":
     # main()
-    test()
+    # test()
+    read_file()

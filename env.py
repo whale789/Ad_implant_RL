@@ -7,26 +7,33 @@ from sklearn.neighbors import KernelDensity
 import matplotlib.pyplot as plt
 
 class Ad_Environment:
-    def __init__(self,ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_height,total_step,ad_density):
+    def __init__(self,ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_height,ad_limit_x,ad_limit_y,ad_limit_width,ad_limit_height,total_step,ad_density):
         self.layer=layer  #广告状态空间索引
         self.ad_counter=ad_counter-1   #广告空间总数
         self.ad_state_x=ad_state_x
         self.ad_state_y=ad_state_y
         self.density_layer=0
         self.total_reward=0
-        self.ad_location_x = ad_state_x[int(self.layer)]  # 广告水平位置
-        # print("00x",self.ad_location_x)
-        self.ad_location_y = ad_state_y[int(self.layer)]  # 广告垂直位置
+        # self.ad_location_x = ad_state_x[int(self.layer)]  # 广告水平位置
+        # # print("00x",self.ad_location_x)
+        # self.ad_location_y = ad_state_y[int(self.layer)]  # 广告垂直位置
         # print("00y",self.ad_location_y)
         self.ad_width=ad_width   #所植入广告的宽度
         self.ad_height=ad_height  #所植入广告的高度
+
+        self.ad_limit_x=ad_limit_x  #限制区域中心点的x坐标
+        self.ad_limit_y=ad_limit_y  #限制区域中心点的y坐标
+        self.ad_limit_width=ad_limit_width  #限制区域的宽度
+        self.ad_limit_height=ad_limit_height    #限制区域的高度
+
         self.total_step=total_step   ##总步数
         self.current_step=0  #当前步数
         self.ad_density=ad_density  #初始位置密度
         self.action_space=[0,1,2,3]  #分别代表up,down,left,right
-        self.current_location_x=self.ad_location_x
-        self.current_location_y=self.ad_location_y
-
+        self.current_location_x=self.ad_state_x
+        self.current_location_y=self.ad_state_y
+        self.current_width=self.ad_width
+        self.current_height=self.ad_height
     def step(self,action):
         if not action in self.action_space:
             print("该Action不存在")
@@ -43,14 +50,25 @@ class Ad_Environment:
             self.current_location_y = self.ad_state_y[self.layer]
             # print("222",self.current_location_x)
 
-        # if action==0:  #平移
-        #     # self.current_location_y+=1
-        #     self.current_location_x=self.ad_location_x[(self.layer+1)%self.ad_counter]
-        #     self.current_location_y=self.ad_location_y[(self.layer+1)%self.ad_counter]
-        # elif action==1:  #缩放
-        #     # self.current_location_y-=1
-        #     pass
-        # elif action==2:   #旋转
+        if action==0:  #向上平移
+           self.current_location_x=self.current_location_x
+           self.current_location_y=self.current_location_y+0.001
+        elif action==1:  #向下平移
+            self.current_location_x=self.current_location_x
+            self.current_location_y=self.current_location_y-0.001
+        elif action==2:  #向左平移
+            self.current_location_x=self.current_location_x-0.001
+            self.current_location_y=self.current_location_y
+        elif action==3:     #向右平移
+            self.current_location_x=self.current_location_x+0.001
+            self.current_location_y=self.current_location_y
+        elif action==4:  #放大
+            self.current_width=self.current_width+0.0005
+            self.current_height=self.current_height+0.0005
+        elif action==5:  #缩小
+            self.current_width=self.current_width-0.0005
+            self.current_height=self.current_height-0.0005
+        # elif action==6:   #旋转
         #     # self.current_location_x-=1
         #     pass
 
@@ -64,18 +82,22 @@ class Ad_Environment:
         return (self.current_location_x,self.current_location_y),reward,done
 
     def calculate_reward(self):
-        ideal_location_x=np.mean(self.ad_location_x)   #计算平均值？
-        iddal_location_y=np.mean(self.ad_location_y)
-
-        #2023.12.1方案：根据广告植入区域的密度进行计算
-        #状态为广告的中心点，以及广告的宽度及高度，以此进而对缩放也加以实现
-        #reward设为对该区域的密度
-        # reward=1000
-        density=self.area_density(self.current_location_x,self.current_location_y,self.ad_width,self.ad_height)  #计算该区域的密度
-        density_difference=density-self.ad_density
-        self.total_reward=round(self.total_reward+round(density_difference, 4)/2,4)
-        # print('333',self.total_reward)
-        self.ad_density=density
+        #根据中心点和宽度、高度计算是否超出了限制区域
+        if self.current_location_x+self.current_width/2>self.ad_limit_x+self.ad_limit_width/2:
+            self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*1000000
+        elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
+            self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*1000000
+        elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
+            self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*1000000
+        elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
+            self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*1000000
+        else:
+            density = self.area_density(self.current_location_x, self.current_location_y, self.ad_width,
+                                        self.ad_height)  # 计算该区域的密度
+            density_difference = density - self.ad_density
+            self.total_reward = round(self.total_reward + round(density_difference, 4) / 2, 4)
+            # print('333',self.total_reward)
+            self.ad_density = density
 
         return self.total_reward
 
@@ -84,9 +106,9 @@ class Ad_Environment:
         cu_location_y=copy.copy(self.current_location_y)
         return [cu_location_x,cu_location_y]
     def reset(self):
-        layer=random.randint(0,self.ad_counter)
-        self.current_location_x=self.ad_state_x[layer]
-        self.current_location_y=self.ad_state_y[layer]
+        # layer=random.randint(0,self.ad_counter)
+        self.current_location_x=self.ad_state_x
+        self.current_location_y=self.ad_state_y
         self.current_step=0
         return self.get_state()
 
