@@ -29,7 +29,7 @@ class Ad_Environment:
         self.total_step=total_step   ##总步数
         self.current_step=0  #当前步数
         self.ad_density=ad_density  #初始位置密度
-        self.action_space=[0,1,2,3]  #分别代表up,down,left,right
+        self.action_space=[0,1,2,3,4,5]  #分别代表up,down,left,right
         self.current_location_x=self.ad_state_x
         self.current_location_y=self.ad_state_y
         self.current_width=self.ad_width
@@ -46,8 +46,8 @@ class Ad_Environment:
                 self.density_layer%=36
             if self.layer>self.ad_counter:
                 self.layer=self.layer%self.ad_counter
-            self.current_location_x = self.ad_state_x[self.layer]
-            self.current_location_y = self.ad_state_y[self.layer]
+            self.current_location_x = self.ad_state_x
+            self.current_location_y = self.ad_state_y
             # print("222",self.current_location_x)
 
         if action==0:  #向上平移

@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from env import Ad_Environment
 import matplotlib.pyplot as plt
 
-N_Actions=5  #动作数
+N_Actions=6  #动作数
 N_States=2  #状态数
 Memory_Capacity=10 #记忆库容量
 Batch_size=5  #样本数量
@@ -20,9 +20,9 @@ Gamma=0.9  #奖励折扣
 class DQNNet(torch.nn.Module):  #定义网络
     def __init__(self):
         super(DQNNet,self).__init__()
-        self.fc1=torch.nn.Linear(N_States,5)  #建立第一个全连接层，状态个数神经元到50个神经元
+        self.fc1=torch.nn.Linear(N_States,50)  #建立第一个全连接层，状态个数神经元到50个神经元
         self.fc1.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
-        self.out=torch.nn.Linear(5,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
+        self.out=torch.nn.Linear(50,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
         self.out.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
     def forward(self,x):   #x为状态
         x=F.relu(self.fc1(x))  #连接输入层到隐藏层，且使用激励函数Relu函数来处理经过隐藏层后的值
@@ -44,6 +44,7 @@ class DQN(object):
         if np.random.uniform()<Epsilon:    #生成一个[0,1]之内的随机数，如果小于Epslion，选择最优动作
             actions_value=self.eval_net.forward(x)  #通过评估网络输入状态x，前向传播获取动作值
             action=torch.max(actions_value,1)[1].data.numpy()   #输出每一行的最大值的索引，并转换为numpy ndarray形式
+            # print(actions_value)
             action=action[0]  #输出action的第一个数
             # print("333",action)
         else:  #随机选择动作
@@ -123,10 +124,7 @@ def main():
     ad_heigth=0.2
 
 
-    # ad_state_x=[random.uniform(0.3+ad_width/2,0.8-(ad_heigth/2)) for _ in range(ad_counter)]
-    # ad_state_y=[random.uniform(0.2+ad_heigth/2,0.7-(ad_heigth/2)) for _ in range(ad_counter)]
-    # ad_state_x=random.uniform(0.3+ad_width/2,0.8-(ad_heigth/2))
-    # ad_state_y=random.uniform(0.2+ad_heigth/2,0.7-(ad_heigth/2))
+
     ad_state_x=4.5
     ad_state_y=5.0
     layer=random.randint(0,ad_counter-1)
@@ -143,7 +141,6 @@ def main():
         s=env.reset()   #重置环境
         # print('123',s)
         episode_reward_sum=0
-
         while True:
             a=dqn.choose_action(s)
             s_,r,done=env.step(a)
@@ -151,7 +148,7 @@ def main():
             episode_reward_sum+=r  #逐步加上一个episodes内的每个step的reward
 
             s=s_ #更新状态
-
+            # print("action:",a)
             if dqn.memory_counter>Memory_Capacity:
                 #开始学习（抽取记忆，即32个transition,对评估网络的参数进行更新，并且每个100次讲评估网络的参数赋给目标网络）
                 dqn.learn()
@@ -188,6 +185,6 @@ def test():
 
 
 if __name__ == "__main__":
-    # main()
+    main()
     # test()
-    read_file()
+    # read_file()
