@@ -38,12 +38,7 @@ class Ad_Environment:
         if not action in self.action_space:
             print("该Action不存在")
         else:
-            # print("111:",self.ad_state_x)
-            # print("444",self.layer,self.ad_counter)
             self.layer+=1
-            self.density_layer+=1
-            if self.density_layer>=36:
-                self.density_layer%=36
             if self.layer>self.ad_counter:
                 self.layer=self.layer%self.ad_counter
             self.current_location_x = self.ad_state_x
@@ -77,26 +72,30 @@ class Ad_Environment:
         reward=self.calculate_reward()   #奖励函数
 
         self.current_step+=1
-        done=self.current_step>=self.total_step
-
+        # done=self.current_step>=self.total_step
+        done=False
+        if self.current_step>=self.total_step:
+            done=True
+            print(self.density_layer)
+            self.density_layer=(self.density_layer+1)%5
         return (self.current_location_x,self.current_location_y),reward,done
 
     def calculate_reward(self):
         #根据中心点和宽度、高度计算是否超出了限制区域
         if self.current_location_x+self.current_width/2>self.ad_limit_x+self.ad_limit_width/2:
-            self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*1000000
+            self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*10000
         elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
-            self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*1000000
+            self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*10000
         elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
-            self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*1000000
+            self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*10000
         elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
-            self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*1000000
+            self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*10000
         else:
             density = self.area_density(self.current_location_x, self.current_location_y, self.ad_width,
                                         self.ad_height)  # 计算该区域的密度
             density_difference = density - self.ad_density
             self.total_reward = round(self.total_reward + round(density_difference, 4) / 2, 4)
-            # print('333',self.total_reward)
+            # print('333',density)
             self.ad_density = density
 
         return self.total_reward
@@ -116,7 +115,7 @@ class Ad_Environment:
         env = dict()
         x_list = []
         y_list = []
-        folder_path = "Datas/Gaze_txt_files/p001"
+        folder_path = "Datas/VR_frame_50"
         file_list = os.listdir(folder_path)
         # print(os.path.join(folder_path, file_list[0]))
         file_path=os.path.join(folder_path,file_list[self.density_layer])
@@ -157,7 +156,7 @@ class Ad_Environment:
             return 0
         else:
             # 应用核密度估计
-            kde = KernelDensity(bandwidth=0.05)
+            kde = KernelDensity(bandwidth=0.3)
             kde.fit(region_data)
 
             # 计算密度值

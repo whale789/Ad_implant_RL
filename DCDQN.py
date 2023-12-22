@@ -125,14 +125,15 @@ def main():
 
 
 
-    ad_state_x=4.5
-    ad_state_y=5.0
+    ad_state_x=0.45
+    ad_state_y=0.5
     layer=random.randint(0,ad_counter-1)
     # print(layer)
-    ad_limit_x=5.0
-    ad_limit_y=4.0
-    ad_limit_width=4.0
-    ad_limit_height=3.0
+    ad_limit_x=0.5
+    ad_limit_y=0.4
+    ad_limit_width=0.4
+    ad_limit_height=0.3
+    density_layer=0
     env=Ad_Environment(ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_heigth,ad_limit_x,ad_limit_y,ad_limit_width,ad_limit_height,
                        total_step=100,ad_density=0)
     max_reward=float('-inf')
@@ -141,6 +142,7 @@ def main():
         s=env.reset()   #重置环境
         # print('123',s)
         episode_reward_sum=0
+
         while True:
             a=dqn.choose_action(s)
             s_,r,done=env.step(a)
