@@ -130,9 +130,9 @@ def main():
     layer=random.randint(0,ad_counter-1)
     # print(layer)
     ad_limit_x=0.5
-    ad_limit_y=0.4
+    ad_limit_y=0.5
     ad_limit_width=0.4
-    ad_limit_height=0.3
+    ad_limit_height=0.4
     density_layer=0
     env=Ad_Environment(ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_heigth,ad_limit_x,ad_limit_y,ad_limit_width,ad_limit_height,
                        total_step=100,ad_density=0)

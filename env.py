@@ -47,22 +47,22 @@ class Ad_Environment:
 
         if action==0:  #向上平移
            self.current_location_x=self.current_location_x
-           self.current_location_y=self.current_location_y+0.001
+           self.current_location_y=self.current_location_y+0.005
         elif action==1:  #向下平移
             self.current_location_x=self.current_location_x
-            self.current_location_y=self.current_location_y-0.001
+            self.current_location_y=self.current_location_y-0.005
         elif action==2:  #向左平移
-            self.current_location_x=self.current_location_x-0.001
+            self.current_location_x=self.current_location_x-0.005
             self.current_location_y=self.current_location_y
         elif action==3:     #向右平移
-            self.current_location_x=self.current_location_x+0.001
+            self.current_location_x=self.current_location_x+0.005
             self.current_location_y=self.current_location_y
         elif action==4:  #放大
-            self.current_width=self.current_width+0.0005
-            self.current_height=self.current_height+0.0005
+            self.current_width=self.current_width+0.001
+            self.current_height=self.current_height+0.001
         elif action==5:  #缩小
-            self.current_width=self.current_width-0.0005
-            self.current_height=self.current_height-0.0005
+            self.current_width=self.current_width-0.001
+            self.current_height=self.current_height-0.001
         # elif action==6:   #旋转
         #     # self.current_location_x-=1
         #     pass
@@ -76,27 +76,27 @@ class Ad_Environment:
         done=False
         if self.current_step>=self.total_step:
             done=True
-            print(self.density_layer)
+            # print(self.density_layer)
             self.density_layer=(self.density_layer+1)%5
         return (self.current_location_x,self.current_location_y),reward,done
 
     def calculate_reward(self):
         #根据中心点和宽度、高度计算是否超出了限制区域
-        if self.current_location_x+self.current_width/2>self.ad_limit_x+self.ad_limit_width/2:
-            self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*10000
-        elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
-            self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*10000
-        elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
-            self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*10000
-        elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
-            self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*10000
-        else:
-            density = self.area_density(self.current_location_x, self.current_location_y, self.ad_width,
-                                        self.ad_height)  # 计算该区域的密度
-            density_difference = density - self.ad_density
-            self.total_reward = round(self.total_reward + round(density_difference, 4) / 2, 4)
-            # print('333',density)
-            self.ad_density = density
+        # if self.current_location_x+self.current_width/2>self.ad_limit_x+self.ad_limit_width/2:
+        #     self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*10000
+        # elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
+        #     self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*10000
+        # elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
+        #     self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*10000
+        # elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
+        #     self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*10000
+        # else:
+        density = self.area_density(self.current_location_x, self.current_location_y, self.ad_width,
+                                    self.ad_height)  # 计算该区域的密度
+        # density_difference = density - self.ad_density
+        self.total_reward = round(self.total_reward + round(density, 4) / 2, 4)
+        # print('333',density)
+        self.ad_density = density
 
         return self.total_reward
 
@@ -119,6 +119,7 @@ class Ad_Environment:
         file_list = os.listdir(folder_path)
         # print(os.path.join(folder_path, file_list[0]))
         file_path=os.path.join(folder_path,file_list[self.density_layer])
+        # print(file_path)
         with open(file_path, newline='') as file:
             eye_data_text = file.readlines()
             for line in eye_data_text:
