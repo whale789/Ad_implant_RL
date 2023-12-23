@@ -47,22 +47,22 @@ class Ad_Environment:
 
         if action==0:  #向上平移
            self.current_location_x=self.current_location_x
-           self.current_location_y=self.current_location_y+0.005
+           self.current_location_y=self.current_location_y+0.05
         elif action==1:  #向下平移
             self.current_location_x=self.current_location_x
-            self.current_location_y=self.current_location_y-0.005
+            self.current_location_y=self.current_location_y-0.05
         elif action==2:  #向左平移
-            self.current_location_x=self.current_location_x-0.005
+            self.current_location_x=self.current_location_x-0.05
             self.current_location_y=self.current_location_y
         elif action==3:     #向右平移
-            self.current_location_x=self.current_location_x+0.005
+            self.current_location_x=self.current_location_x+0.05
             self.current_location_y=self.current_location_y
         elif action==4:  #放大
-            self.current_width=self.current_width+0.001
-            self.current_height=self.current_height+0.001
+            self.current_width=self.current_width+0.02
+            self.current_height=self.current_height+0.02
         elif action==5:  #缩小
-            self.current_width=self.current_width-0.001
-            self.current_height=self.current_height-0.001
+            self.current_width=self.current_width-0.02
+            self.current_height=self.current_height-0.02
         # elif action==6:   #旋转
         #     # self.current_location_x-=1
         #     pass
@@ -93,8 +93,8 @@ class Ad_Environment:
         # else:
         density = self.area_density(self.current_location_x, self.current_location_y, self.ad_width,
                                     self.ad_height)  # 计算该区域的密度
-        # density_difference = density - self.ad_density
-        self.total_reward = round(self.total_reward + round(density, 4) / 2, 4)
+        density_difference = density - self.ad_density
+        self.total_reward = round(self.total_reward + round(density_difference, 4) / 100, 4)
         # print('333',density)
         self.ad_density = density
 
@@ -157,7 +157,7 @@ class Ad_Environment:
             return 0
         else:
             # 应用核密度估计
-            kde = KernelDensity(bandwidth=0.3)
+            kde = KernelDensity(bandwidth=0.1)
             kde.fit(region_data)
 
             # 计算密度值

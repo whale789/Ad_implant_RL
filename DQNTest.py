@@ -133,7 +133,7 @@ y_list = []
 folder_path = "Datas/VR_frame_50"
 file_list = os.listdir(folder_path)
 # print(os.path.join(folder_path, file_list[0]))
-file_path = os.path.join(folder_path, file_list[4])
+file_path = os.path.join(folder_path, file_list[2])
 with open(file_path, newline='') as file:
     eye_data_text = file.readlines()
     for line in eye_data_text:
@@ -186,7 +186,7 @@ if region_data.size == 0:
     print("密度为0")
 else:
     # 应用核密度估计
-    kde = KernelDensity(bandwidth=0.3)
+    kde = KernelDensity(bandwidth=0.1)
     kde.fit(region_data)
 
     # 计算密度值
