@@ -10,7 +10,7 @@ import model_test
 import matplotlib.pyplot as plt
 
 N_Actions=6  #动作数
-N_States=2  #状态数
+N_States=4  #状态数 12.27：x，y，width，height
 Memory_Capacity=2000 #记忆库容量
 Batch_size=5  #样本数量
 LR=0.01 #学习率
@@ -166,9 +166,9 @@ def test():
     model.load_state_dict(torch.load('best_model.pth'))
     model.eval()
     #(0.43,0.58) (0.46,0.35)
-    ad_width = 0.02
+    ad_width = 0.01
     ad_heigth = 0.2
-    ad_state_x = 0.45
+    ad_state_x = 0.5
     ad_state_y = 0.45
     # ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
     # ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
@@ -183,33 +183,39 @@ def test():
                          total_step=100, ad_density=0)
     s=env.reset()
     x = torch.unsqueeze(torch.FloatTensor(s), 0)
-    with torch.no_grad():
-        action_probabilities=model(x)
+    ep_reward=0
+    while True:
+
+        x = torch.unsqueeze(torch.FloatTensor(s), 0)
+        print(x)
+        action_probabilities = model(x)
         print(action_probabilities)
-    choose_action=torch.argmax(action_probabilities).item()
-    if choose_action==0:  #向上平移
-       ad_state_y+=0.05
-    elif choose_action==1:  #向下平移
-        ad_state_y-=0.05
-    elif choose_action==2:  #向左平移
-        ad_state_x-=0.05
-    elif choose_action==3:     #向右平移
-        ad_state_x+=0.05
-    elif choose_action==4:  #放大
-        ad_width+=0.02
-        ad_heigth+=0.02
-    elif choose_action==5:  #缩小
-        ad_width-=0.02
-        ad_heigth-=0.02
-    print(choose_action)
-    input_image_path = "0000.png"
-    output_image_path = "0000_test.jpg"
-    normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
-    normalized_top_right1 = (ad_limit_x+ad_limit_width/2, ad_limit_y-ad_limit_height/2)
-    normalized_bottom_left2 = (ad_state_x-ad_width/2, ad_state_y+ad_heigth/2)
-    normalized_top_right2 = (ad_state_x+ad_width/2, ad_state_y-ad_heigth/2)
-    model_test.draw_rectangles(input_image_path, output_image_path, normalized_bottom_left1, normalized_top_right1,
-            normalized_bottom_left2, normalized_top_right2)
+        a = torch.argmax(action_probabilities).item()
+        # print(a)
+        # a=dqn.choose_action(x)
+        s_, r, done = env.step(a)
+        dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中
+        ep_reward += r
+        # print(ep_reward)
+        s=s_
+        # print("111",s_)
+        if done:
+            print("最后位置为：",s_)
+            break
+    # with torch.no_grad():
+    #     action_probabilities=model(x)
+    #     print(action_probabilities)
+    # choose_action=torch.argmax(action_probabilities).item()
+    # print(choose_action)
+
+    # input_image_path = "0000.png"
+    # output_image_path = "0000_test.jpg"
+    # normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
+    # normalized_top_right1 = (ad_limit_x+ad_limit_width/2, ad_limit_y-ad_limit_height/2)
+    # normalized_bottom_left2 = (ad_state_x-ad_width/2, ad_state_y+ad_heigth/2)
+    # normalized_top_right2 = (ad_state_x+ad_width/2, ad_state_y-ad_heigth/2)
+    # model_test.draw_rectangles(input_image_path, output_image_path, normalized_bottom_left1, normalized_top_right1,
+    #         normalized_bottom_left2, normalized_top_right2)
 
 
 

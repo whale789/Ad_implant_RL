@@ -41,31 +41,32 @@ class Ad_Environment:
             self.layer+=1
             if self.layer>self.ad_counter:
                 self.layer=self.layer%self.ad_counter
-            self.current_location_x = self.ad_state_x
-            self.current_location_y = self.ad_state_y
+            # self.current_location_x = self.ad_state_x
+            # self.current_location_y = self.ad_state_y
             # print("222",self.current_location_x)
-
-        if action==0:  #向上平移
-           self.current_location_x=self.current_location_x
-           self.current_location_y=self.current_location_y+0.05
-        elif action==1:  #向下平移
-            self.current_location_x=self.current_location_x
-            self.current_location_y=self.current_location_y-0.05
-        elif action==2:  #向左平移
-            self.current_location_x=self.current_location_x-0.05
-            self.current_location_y=self.current_location_y
-        elif action==3:     #向右平移
-            self.current_location_x=self.current_location_x+0.05
-            self.current_location_y=self.current_location_y
-        elif action==4:  #放大
-            self.current_width=self.current_width+0.02
-            self.current_height=self.current_height+0.02
-        elif action==5:  #缩小
-            self.current_width=self.current_width-0.02
-            self.current_height=self.current_height-0.02
-        # elif action==6:   #旋转
-        #     # self.current_location_x-=1
-        #     pass
+            if action==0:  #向上平移
+               self.current_location_x=self.current_location_x
+               self.current_location_y=self.current_location_y+0.05
+            elif action==1:  #向下平移
+                self.current_location_x=self.current_location_x
+                self.current_location_y=self.current_location_y-0.05
+            elif action==2:  #向左平移
+                self.current_location_x=self.current_location_x-0.05
+                self.current_location_y=self.current_location_y
+            elif action==3:     #向右平移
+                self.current_location_x=self.current_location_x+0.05
+                self.current_location_y=self.current_location_y
+            elif action==4:  #放大
+                self.current_width=self.current_width+0.02
+                self.current_height=self.current_height+0.02
+            elif action==5:  #缩小
+                self.current_width=self.current_width-0.02
+                self.current_height=self.current_height-0.02
+            # elif action==6:   #旋转
+            #     # self.current_location_x-=1
+            #     pass
+            # print("111",self.current_location_x,self.current_location_y)
+            # print("222",self.current_width,self.current_height)
 
 
 
@@ -78,36 +79,39 @@ class Ad_Environment:
             done=True
             # print(self.density_layer)
             self.density_layer=(self.density_layer+1)%5
-        return (self.current_location_x,self.current_location_y),reward,done
+        return (self.current_location_x,self.current_location_y,self.current_width,self.current_height),reward,done
 
     def calculate_reward(self):
         #根据中心点和宽度、高度计算是否超出了限制区域
-        # if self.current_location_x+self.current_width/2>self.ad_limit_x+self.ad_limit_width/2:
-        #     self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*10000
-        # elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
-        #     self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*10000
-        # elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
-        #     self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*10000
-        # elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
-        #     self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*10000
-        # else:
-        density = self.area_density(self.current_location_x, self.current_location_y, self.ad_width,
-                                    self.ad_height)  # 计算该区域的密度
-        density_difference = density - self.ad_density
-        self.total_reward = round(self.total_reward + round(density_difference, 4) / 100, 4)
-        # print('333',density)
-        self.ad_density = density
+        if self.current_location_x+self.current_width/2>self.ad_limit_x+self.ad_limit_width/2:
+            self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*1000
+        elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
+            self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*1000
+        elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
+            self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*1000
+        elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
+            self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*1000
+        else:
+            density = self.area_density(self.current_location_x, self.current_location_y, self.current_width,
+                                        self.current_height)  # 计算该区域的密度
+            density_difference = density - self.ad_density
+            self.total_reward = round(self.total_reward + round(density_difference, 4) / 100, 4)
+            self.ad_density = density
 
         return self.total_reward
 
     def get_state(self):   #讲ad_location_x和ad_location_y拼接起来
         cu_location_x=copy.copy(self.current_location_x)
         cu_location_y=copy.copy(self.current_location_y)
-        return [cu_location_x,cu_location_y]
+        cu_location_width=copy.copy(self.current_width)
+        cu_location_height=copy.copy(self.current_height)
+        return [cu_location_x,cu_location_y,cu_location_width,cu_location_height]
     def reset(self):
         # layer=random.randint(0,self.ad_counter)
         self.current_location_x=self.ad_state_x
         self.current_location_y=self.ad_state_y
+        self.current_width=self.ad_width
+        self.current_height=self.ad_height
         self.current_step=0
         return self.get_state()
 
