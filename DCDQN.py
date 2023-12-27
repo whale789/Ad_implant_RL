@@ -191,7 +191,7 @@ def test():
         action_probabilities = model(x)
         print(action_probabilities)
         a = torch.argmax(action_probabilities).item()
-        # print(a)
+        print(a)
         # a=dqn.choose_action(x)
         s_, r, done = env.step(a)
         dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中

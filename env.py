@@ -83,20 +83,20 @@ class Ad_Environment:
 
     def calculate_reward(self):
         #根据中心点和宽度、高度计算是否超出了限制区域
-        if self.current_location_x+self.current_width/2>self.ad_limit_x+self.ad_limit_width/2:
-            self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*1000
-        elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
-            self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*1000
-        elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
-            self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*1000
-        elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
-            self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*1000
-        else:
-            density = self.area_density(self.current_location_x, self.current_location_y, self.current_width,
-                                        self.current_height)  # 计算该区域的密度
-            density_difference = density - self.ad_density
-            self.total_reward = round(self.total_reward + round(density_difference, 4) / 100, 4)
-            self.ad_density = density
+        # if self.current_location_x+self.current_width/2>self.ad_limit_x+self.ad_limit_width/2:
+        #     self.total_reward-=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*1000
+        # elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
+        #     self.total_reward-=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height))*1000
+        # elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
+        #     self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*1000
+        # elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
+        #     self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*1000
+        # else:
+        density = self.area_density(self.current_location_x, self.current_location_y, self.current_width,
+                                    self.current_height)  # 计算该区域的密度
+        density_difference = density - self.ad_density
+        self.total_reward = round(self.total_reward + round(density_difference, 4) / 100, 4)
+        self.ad_density = density
 
         return self.total_reward
 
