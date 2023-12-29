@@ -166,9 +166,9 @@ def test():
     model.load_state_dict(torch.load('best_model.pth'))
     model.eval()
     #(0.43,0.58) (0.46,0.35)
-    ad_width = 0.01
-    ad_heigth = 0.2
-    ad_state_x = 0.5
+    ad_width = 0.001
+    ad_heigth = 0.06
+    ad_state_x = 0.45
     ad_state_y = 0.45
     # ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
     # ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
@@ -196,7 +196,7 @@ def test():
         s_, r, done = env.step(a)
         dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中
         ep_reward += r
-        # print(ep_reward)
+        print(ep_reward)
         s=s_
         # print("111",s_)
         if done:
@@ -221,6 +221,6 @@ def test():
 
 
 if __name__ == "__main__":
-    # main()
-    test()
+    main()
+    # test()
     # read_file()
