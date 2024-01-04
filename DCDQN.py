@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 
 N_Actions=6  #动作数
 N_States=4  #状态数 12.27：x，y，width，height
-Memory_Capacity=2000 #记忆库容量
+Memory_Capacity=100 #记忆库容量
 Batch_size=5  #样本数量
-LR=0.01 #学习率
+LR=0.05 #学习率
 Epsilon=0.9  #贪心策略
 Target_Replace_iter=100 #目标网络更新频率
 Gamma=0.9  #奖励折扣
@@ -40,16 +40,22 @@ class DQN(object):
         self.optimizer=torch.optim.Adam(self.eval_net.parameters(),lr=LR) #使用Adam优化器，输入为评估网路的参数和优化器
         self.loss_func=torch.nn.MSELoss()   #使用均方损失函数，loss(xi,yi)=(xi-yi)^2
 
-    def choose_action(self,state):   #定义动作选择函数，x为状态
+    def choose_action(self,state,way):   #定义动作选择函数，x为状态
         x=torch.unsqueeze(torch.FloatTensor(state),0)  #将x转换为floating point的形式，并在dim=0增加维数为1的维度
-        if np.random.uniform()<Epsilon:    #生成一个[0,1]之内的随机数，如果小于Epslion，选择最优动作
-            actions_value=self.eval_net.forward(x)  #通过评估网络输入状态x，前向传播获取动作值
-            action=torch.max(actions_value,1)[1].data.numpy()   #输出每一行的最大值的索引，并转换为numpy ndarray形式
+        if way=="train":
+            if np.random.uniform()<Epsilon:    #生成一个[0,1]之内的随机数，如果小于Epslion，选择最优动作
+                actions_value=self.eval_net.forward(x)  #通过评估网络输入状态x，前向传播获取动作值
+                action=torch.max(actions_value,1)[1].data.numpy()   #输出每一行的最大值的索引，并转换为numpy ndarray形式
+                # print(actions_value)
+                action=action[0]  #输出action的第一个数
+                # print("333",action)
+            else:  #随机选择动作
+                action=np.random.randint(0,N_Actions)  #随机选择动作总数之间的一个动作
+        if way=="test":
+            actions_value = self.eval_net.forward(x)  # 通过评估网络输入状态x，前向传播获取动作值
+            action = torch.max(actions_value, 1)[1].data.numpy()  # 输出每一行的最大值的索引，并转换为numpy ndarray形式
             # print(actions_value)
-            action=action[0]  #输出action的第一个数
-            # print("333",action)
-        else:  #随机选择动作
-            action=np.random.randint(0,N_Actions)  #随机选择动作总数之间的一个动作
+            action = action[0]  # 输出action的第一个数
         return action
 
     def store_transition(self,s,a,r,s_):   #定义记忆储存函数（这里的输入为一个transition）
@@ -113,21 +119,21 @@ def read_file():
 
 
 def main():
-    episodes=1000
+    episodes=1500
     dqn=DQN()
 
     ad_counter=5  #广告候选空间数量
 
-    ad_width=0.1
-    ad_heigth=0.1
-    ad_state_x=0.5
-    ad_state_y=0.5
+    ad_width = 0.01
+    ad_heigth = 0.06
+    ad_state_x = 0.45
+    ad_state_y = 0.45
     layer=random.randint(0,ad_counter-1)
     # print(layer)
-    ad_limit_x=0.5
-    ad_limit_y=0.5
-    ad_limit_width=0.4
-    ad_limit_height=0.4
+    ad_limit_x = 0.445
+    ad_limit_y = 0.465
+    ad_limit_width = 0.03
+    ad_limit_height = 0.23
     density_layer=0
     env=Ad_Environment(ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_heigth,ad_limit_x,ad_limit_y,ad_limit_width,ad_limit_height,
                        total_step=100,ad_density=0)
@@ -139,7 +145,7 @@ def main():
         episode_reward_sum=0
 
         while True:
-            a=dqn.choose_action(s)
+            a=dqn.choose_action(s,way="train")
             s_,r,done=env.step(a)
             dqn.store_transition(s,a,r,s_)   #储存样本到数据库中
             episode_reward_sum+=r  #逐步加上一个episodes内的每个step的reward
@@ -162,11 +168,11 @@ def main():
 def test():
     ad_counter = 5  # 广告候选空间数量
     dqn = DQN()
-    model=DQNNet()
-    model.load_state_dict(torch.load('best_model.pth'))
-    model.eval()
+    # model=DQNNet()
+    DQNNet().load_state_dict(torch.load('best_model.pth'))
+    # model.eval()
     #(0.43,0.58) (0.46,0.35)
-    ad_width = 0.001
+    ad_width = 0.01
     ad_heigth = 0.06
     ad_state_x = 0.45
     ad_state_y = 0.45
@@ -182,45 +188,42 @@ def test():
                          ad_limit_width, ad_limit_height,
                          total_step=100, ad_density=0)
     s=env.reset()
-    x = torch.unsqueeze(torch.FloatTensor(s), 0)
     ep_reward=0
     while True:
-
-        x = torch.unsqueeze(torch.FloatTensor(s), 0)
-        print(x)
-        action_probabilities = model(x)
-        print(action_probabilities)
-        a = torch.argmax(action_probabilities).item()
-        print(a)
-        # a=dqn.choose_action(x)
+        a=dqn.choose_action(s,way="test")
+        print("动作：",a)
         s_, r, done = env.step(a)
         dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中
         ep_reward += r
-        print(ep_reward)
-        s=s_
+
+        if r<0:
+            print("最后位置为：", s_)
+            break
+        print(r)
+        s = s_
         # print("111",s_)
         if done:
             print("最后位置为：",s_)
             break
-    # with torch.no_grad():
-    #     action_probabilities=model(x)
-    #     print(action_probabilities)
-    # choose_action=torch.argmax(action_probabilities).item()
-    # print(choose_action)
 
-    # input_image_path = "0000.png"
-    # output_image_path = "0000_test.jpg"
-    # normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
-    # normalized_top_right1 = (ad_limit_x+ad_limit_width/2, ad_limit_y-ad_limit_height/2)
-    # normalized_bottom_left2 = (ad_state_x-ad_width/2, ad_state_y+ad_heigth/2)
-    # normalized_top_right2 = (ad_state_x+ad_width/2, ad_state_y-ad_heigth/2)
-    # model_test.draw_rectangles(input_image_path, output_image_path, normalized_bottom_left1, normalized_top_right1,
-    #         normalized_bottom_left2, normalized_top_right2)
+    print(s[0])
+    ad_state_x=s[0]
+    ad_state_y=s[1]
+    ad_width=s[2]
+    ad_heigth = s[3]
+    input_image_path = "0000.png"
+    output_image_path = "0000_test.jpg"
+    normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
+    normalized_top_right1 = (ad_limit_x+ad_limit_width/2, ad_limit_y-ad_limit_height/2)
+    normalized_bottom_left2 = (ad_state_x-ad_width/2, ad_state_y+ad_heigth/2)
+    normalized_top_right2 = (ad_state_x+ad_width/2, ad_state_y-ad_heigth/2)
+    model_test.draw_rectangles(input_image_path, output_image_path, normalized_bottom_left1, normalized_top_right1,
+            normalized_bottom_left2, normalized_top_right2)
 
 
 
 
 if __name__ == "__main__":
-    main()
-    # test()
+    # main()
+    test()
     # read_file()
