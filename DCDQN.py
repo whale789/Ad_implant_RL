@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from env import Ad_Environment
 import model_test
 import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw
 
 N_Actions=6  #动作数
 N_States=4  #状态数 12.27：x，y，width，height
@@ -187,38 +188,91 @@ def test():
     env = Ad_Environment(ad_state_x, ad_state_y, layer, ad_counter, ad_width, ad_heigth, ad_limit_x, ad_limit_y,
                          ad_limit_width, ad_limit_height,
                          total_step=100, ad_density=0)
-    s=env.reset()
-    ep_reward=0
-    while True:
-        a=dqn.choose_action(s,way="test")
-        print("动作：",a)
-        s_, r, done = env.step(a)
-        dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中
-        ep_reward += r
+    finally_state=[]
+    for i in range(20):
+        dqn = DQN()
+        # model=DQNNet()
+        DQNNet().load_state_dict(torch.load('best_model.pth'))
+        s=env.reset()
+        ep_reward=0
+        while True:
+            a=dqn.choose_action(s,way="test")
+            print("动作：",a)
+            s_, r, done = env.step(a)
+            dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中
+            ep_reward += r
 
-        if r<0:
-            print("最后位置为：", s_)
-            break
-        print(r)
-        s = s_
-        # print("111",s_)
-        if done:
-            print("最后位置为：",s_)
-            break
+            if r<0:
+                print("最后位置为：", s_)
+                break
+            print(r)
+            s = s_
+            # print("111",s_)
+            if done:
+                print("最后位置为：",s_)
+                break
+        ad_state_x_=s[0]
+        ad_state_y_=s[1]
+        ad_width_=s[2]
+        ad_height_=s[3]
+        if ad_state_x_+ad_width_/2<1 and ad_state_y_+ad_height_/2<1 and ad_state_x_-ad_width_/2>0 and ad_state_y_-ad_height_/2>0 \
+                and ad_state_x_>0 and ad_state_y_>0 and ad_width_>0 and ad_height_>0:
+            finally_state.append(s)
 
-    print(s[0])
-    ad_state_x=s[0]
-    ad_state_y=s[1]
-    ad_width=s[2]
-    ad_heigth = s[3]
-    input_image_path = "0000.png"
-    output_image_path = "0000_test.jpg"
+    unique_list = list(set(str(t) for t in finally_state))
+
+    # 将字符串再转换回元组
+    unique_list = [eval(t) for t in unique_list]
+    image_path = "0000.png"
+    output_path = "0000_test.jpg"
+    image = Image.open(image_path)
+    color = (255, 0, 0)
+    thickness = 8
+    width, height = image.size
     normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
     normalized_top_right1 = (ad_limit_x+ad_limit_width/2, ad_limit_y-ad_limit_height/2)
-    normalized_bottom_left2 = (ad_state_x-ad_width/2, ad_state_y+ad_heigth/2)
-    normalized_top_right2 = (ad_state_x+ad_width/2, ad_state_y-ad_heigth/2)
-    model_test.draw_rectangles(input_image_path, output_image_path, normalized_bottom_left1, normalized_top_right1,
-            normalized_bottom_left2, normalized_top_right2)
+    # 归一化坐标
+    pixel_bottom_left1 = (int(normalized_bottom_left1[0] * width), int((1 - normalized_bottom_left1[1]) * height))
+    pixel_top_right1 = (int(normalized_top_right1[0] * width), int((1 - normalized_top_right1[1]) * height))
+
+    # 创建绘图对象
+    draw = ImageDraw.Draw(image)
+
+    # 画矩形框1
+    draw.rectangle([pixel_bottom_left1, pixel_top_right1], outline=color, width=thickness)
+    for s in unique_list:
+        print(s)
+        x=s[0]
+        y=s[1]
+        w=s[2]
+        h=s[3]
+        width, height = image.size
+        normalized_bottom_left1 = (x-w/2,y+h/2)
+        normalized_top_right1 = (x+w/2,y-h/2)
+        # 归一化坐标
+        pixel_bottom_left1 = (int(normalized_bottom_left1[0] * width), int((1 - normalized_bottom_left1[1]) * height))
+        pixel_top_right1 = (int(normalized_top_right1[0] * width), int((1 - normalized_top_right1[1]) * height))
+
+        # 创建绘图对象
+        draw = ImageDraw.Draw(image)
+
+        # 画矩形框1
+        draw.rectangle([pixel_bottom_left1, pixel_top_right1], outline=color, width=thickness)
+
+    image.save(output_path)
+    # print(unique_list)
+    # ad_state_x=s[0]
+    # ad_state_y=s[1]
+    # ad_width=s[2]
+    # ad_heigth = s[3]
+    # input_image_path = "0000.png"
+    # output_image_path = "0000_test.jpg"
+    # normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
+    # normalized_top_right1 = (ad_limit_x+ad_limit_width/2, ad_limit_y-ad_limit_height/2)
+    # normalized_bottom_left2 = (ad_state_x-ad_width/2, ad_state_y+ad_heigth/2)
+    # normalized_top_right2 = (ad_state_x+ad_width/2, ad_state_y-ad_heigth/2)
+    # model_test.draw_rectangles(input_image_path, output_image_path, normalized_bottom_left1, normalized_top_right1,
+    #         normalized_bottom_left2, normalized_top_right2)
 
 
 
