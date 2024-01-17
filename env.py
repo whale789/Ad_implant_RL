@@ -78,7 +78,7 @@ class Ad_Environment:
         if self.current_step>=self.total_step:
             done=True
             # print(self.density_layer)
-            self.density_layer=(self.density_layer+1)%5
+            self.density_layer=(self.density_layer+1)%20
         return (self.current_location_x,self.current_location_y,self.current_width,self.current_height),reward,done
 
     def calculate_reward(self):
@@ -100,7 +100,9 @@ class Ad_Environment:
                                         self.current_height)  # 计算该区域的密度
             # print("密度是：",density)
             density_difference = density - self.ad_density
-            self.total_reward = round(self.total_reward + round(density_difference, 4) / 100, 4)
+            if density_difference>0:
+                density_difference = density_difference*5
+            self.total_reward = round(self.total_reward + round(density_difference, 12) / 100, 12)
             self.ad_density = density
             # print("555",self.total_reward)
             # print("密度差异为：",density_difference)
@@ -129,7 +131,8 @@ class Ad_Environment:
         folder_path = "Datas/VR_frame_50"
         file_list = os.listdir(folder_path)
         # print(os.path.join(folder_path, file_list[0]))
-        file_path=os.path.join(folder_path,file_list[self.density_layer])
+        # file_path=os.path.join(folder_path,file_list[self.density_layer])   #train
+        file_path = os.path.join(folder_path, file_list[20])  # test
         # print(file_path)
         with open(file_path, newline='') as file:
             eye_data_text = file.readlines()
@@ -197,6 +200,6 @@ class Ad_Environment:
             # print(f"Total Density in the Defined Region: {total_density}")
             # print(f"Average Density in the Defined Region: {average_density}")
 
-            return round(average_density,6)
+            return round(average_density,12)
 
 

@@ -12,9 +12,9 @@ from PIL import Image, ImageDraw
 
 N_Actions=6  #动作数
 N_States=4  #状态数 12.27：x，y，width，height
-Memory_Capacity=100 #记忆库容量
-Batch_size=5  #样本数量
-LR=0.05 #学习率
+Memory_Capacity=2000 #记忆库容量
+Batch_size=32  #样本数量
+LR=0.001 #学习率
 Epsilon=0.9  #贪心策略
 Target_Replace_iter=100 #目标网络更新频率
 Gamma=0.9  #奖励折扣
@@ -22,9 +22,9 @@ Gamma=0.9  #奖励折扣
 class DQNNet(torch.nn.Module):  #定义网络
     def __init__(self):
         super(DQNNet,self).__init__()
-        self.fc1=torch.nn.Linear(N_States,50)  #建立第一个全连接层，状态个数神经元到50个神经元
+        self.fc1=torch.nn.Linear(N_States,80)  #建立第一个全连接层，状态个数神经元到50个神经元
         self.fc1.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
-        self.out=torch.nn.Linear(50,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
+        self.out=torch.nn.Linear(80,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
         self.out.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
     def forward(self,x):   #x为状态
         x=F.relu(self.fc1(x))  #连接输入层到隐藏层，且使用激励函数Relu函数来处理经过隐藏层后的值
@@ -120,15 +120,21 @@ def read_file():
 
 
 def main():
-    episodes=1500
+    episodes=2000
     dqn=DQN()
+
+    seed = 42
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
     ad_counter=5  #广告候选空间数量
 
     ad_width = 0.01
     ad_heigth = 0.06
-    ad_state_x = 0.45
-    ad_state_y = 0.45
+    ad_state_x = 0.44
+    ad_state_y = 0.5
     layer=random.randint(0,ad_counter-1)
     # print(layer)
     ad_limit_x = 0.445
@@ -164,18 +170,23 @@ def main():
         model=DQNNet()
         if episode_reward_sum>max_reward:
             max_reward=episode_reward_sum
-            torch.save(model.state_dict(),"best_model.pth")
+            torch.save(model.state_dict(),"best_model_0.pth")
 
 def test():
+    seed = 42
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
     ad_counter = 5  # 广告候选空间数量
     dqn = DQN()
     # model=DQNNet()
-    DQNNet().load_state_dict(torch.load('best_model.pth'))
+    DQNNet().load_state_dict(torch.load('best_model_0.pth'))
     # model.eval()
     #(0.43,0.58) (0.46,0.35)
     ad_width = 0.01
-    ad_heigth = 0.06
-    ad_state_x = 0.45
+    ad_heigth = 0.05
+    ad_state_x = 0.443
     ad_state_y = 0.45
     # ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
     # ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
@@ -189,35 +200,35 @@ def test():
                          ad_limit_width, ad_limit_height,
                          total_step=100, ad_density=0)
     finally_state=[]
-    for i in range(20):
-        dqn = DQN()
-        # model=DQNNet()
-        DQNNet().load_state_dict(torch.load('best_model.pth'))
-        s=env.reset()
-        ep_reward=0
-        while True:
-            a=dqn.choose_action(s,way="test")
-            print("动作：",a)
-            s_, r, done = env.step(a)
-            dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中
-            ep_reward += r
+    # for i in range(22):
+    dqn = DQN()
+    # model=DQNNet()
+    # DQNNet().load_state_dict(torch.load('best_model.pth'))
+    s=env.reset()
+    ep_reward=0
+    while True:
+        a=dqn.choose_action(s,way="test")
+        print("动作：",a)
+        s_, r, done = env.step(a)
+        dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中
+        ep_reward += r
 
-            if r<0:
-                print("最后位置为：", s_)
-                break
-            print(r)
-            s = s_
-            # print("111",s_)
-            if done:
-                print("最后位置为：",s_)
-                break
-        ad_state_x_=s[0]
-        ad_state_y_=s[1]
-        ad_width_=s[2]
-        ad_height_=s[3]
-        if ad_state_x_+ad_width_/2<1 and ad_state_y_+ad_height_/2<1 and ad_state_x_-ad_width_/2>0 and ad_state_y_-ad_height_/2>0 \
-                and ad_state_x_>0 and ad_state_y_>0 and ad_width_>0 and ad_height_>0:
-            finally_state.append(s)
+        if r<0:
+            print("最后位置为：", s_)
+            break
+        print(r)
+        s = s_
+        # print("111",s_)
+        if done:
+            print("最后位置为：",s_)
+            break
+    ad_state_x_=s[0]
+    ad_state_y_=s[1]
+    ad_width_=s[2]
+    ad_height_=s[3]
+    if ad_state_x_+ad_width_/2<1 and ad_state_y_+ad_height_/2<1 and ad_state_x_-ad_width_/2>0 and ad_state_y_-ad_height_/2>0 \
+            and ad_state_x_>0 and ad_state_y_>0 and ad_width_>0 and ad_height_>0:
+        finally_state.append(s)
 
     unique_list = list(set(str(t) for t in finally_state))
 
@@ -227,6 +238,7 @@ def test():
     output_path = "0000_test.jpg"
     image = Image.open(image_path)
     color = (255, 0, 0)
+    color1=(0,255,0)
     thickness = 8
     width, height = image.size
     normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
@@ -249,15 +261,19 @@ def test():
         width, height = image.size
         normalized_bottom_left1 = (x-w/2,y+h/2)
         normalized_top_right1 = (x+w/2,y-h/2)
+        normalized_bottom_left2=(ad_state_x-ad_width/2, ad_state_y+ad_heigth/2)
+        normalized_top_right2=(ad_state_x+ad_width/2,ad_state_y-ad_heigth/2)
         # 归一化坐标
         pixel_bottom_left1 = (int(normalized_bottom_left1[0] * width), int((1 - normalized_bottom_left1[1]) * height))
         pixel_top_right1 = (int(normalized_top_right1[0] * width), int((1 - normalized_top_right1[1]) * height))
-
+        pixel_bottom_left2 = (int(normalized_bottom_left2[0] * width), int((1 - normalized_bottom_left2[1]) * height))
+        pixel_top_right2 = (int(normalized_top_right2[0] * width), int((1 - normalized_top_right2[1]) * height))
         # 创建绘图对象
         draw = ImageDraw.Draw(image)
 
         # 画矩形框1
-        draw.rectangle([pixel_bottom_left1, pixel_top_right1], outline=color, width=thickness)
+        draw.rectangle([pixel_bottom_left1, pixel_top_right1], outline=color1, width=thickness)
+        draw.rectangle([pixel_bottom_left2, pixel_top_right2], outline=color, width=thickness)
 
     image.save(output_path)
     # print(unique_list)
