@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw
 N_Actions=6  #动作数
 N_States=4  #状态数 12.27：x，y，width，height
 Memory_Capacity=2000 #记忆库容量
-Batch_size=32  #样本数量
+Batch_size=33  #样本数量
 LR=0.001 #学习率
 Epsilon=0.9  #贪心策略
 Target_Replace_iter=100 #目标网络更新频率
@@ -55,7 +55,7 @@ class DQN(object):
         if way=="test":
             actions_value = self.eval_net.forward(x)  # 通过评估网络输入状态x，前向传播获取动作值
             action = torch.max(actions_value, 1)[1].data.numpy()  # 输出每一行的最大值的索引，并转换为numpy ndarray形式
-            # print(actions_value)
+            print(actions_value)
             action = action[0]  # 输出action的第一个数
         return action
 
@@ -156,8 +156,8 @@ def main():
             s_,r,done=env.step(a)
             dqn.store_transition(s,a,r,s_)   #储存样本到数据库中
             episode_reward_sum+=r  #逐步加上一个episodes内的每个step的reward
-
-            s=s_ #更新状态
+            if r>0:
+                s=s_ #更新状态
             # print("action:",a)
             if dqn.memory_counter>Memory_Capacity:
                 #开始学习（抽取记忆，即32个transition,对评估网络的参数进行更新，并且每个100次讲评估网络的参数赋给目标网络）
@@ -170,7 +170,7 @@ def main():
         model=DQNNet()
         if episode_reward_sum>max_reward:
             max_reward=episode_reward_sum
-            torch.save(model.state_dict(),"best_model_0.pth")
+            torch.save(model.state_dict(),"best_model_4.pth")
 
 def test():
     seed = 42
@@ -181,13 +181,13 @@ def test():
     ad_counter = 5  # 广告候选空间数量
     dqn = DQN()
     # model=DQNNet()
-    DQNNet().load_state_dict(torch.load('best_model_0.pth'))
+    DQNNet().load_state_dict(torch.load('best_model_4.pth'))
     # model.eval()
     #(0.43,0.58) (0.46,0.35)
     ad_width = 0.01
     ad_heigth = 0.05
-    ad_state_x = 0.443
-    ad_state_y = 0.45
+    ad_state_x = 0.444
+    ad_state_y = 0.49
     # ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
     # ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
     ad_limit_x = 0.445

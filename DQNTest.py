@@ -12,7 +12,7 @@
 # y_list=[]
 # xx_list=[]
 # yy_list=[]
-# with open("Datas/VR_frame/RL_023_frame/RL_frame25.txt",newline='') as file:
+# with open("Datas/VR_frame_50/RL_189_50Frame.txt",newline='') as file:
 #     eye_data_text=file.readlines()
 #     for line in eye_data_text:
 #         eye_list=line.split(',')
@@ -27,7 +27,7 @@
 # eye_tracking_data = np.array(coordinates)
 #
 # # 核密度估计
-# kde = KernelDensity(bandwidth=0.2)
+# kde = KernelDensity(bandwidth=0.12)
 # kde.fit(eye_tracking_data)
 #
 # # 生成密度图
@@ -76,7 +76,7 @@
 # y_list=[]
 # xx_list=[]
 # yy_list=[]
-# with open("Datas/VR_frame_50/RL_025_50frame.txt",newline='') as file:
+# with open("Datas/VR_frame_50/RL_189_50frame.txt",newline='') as file:
 #     eye_data_text=file.readlines()
 #     for line in eye_data_text:
 #         eye_list=line.split(',')
@@ -120,7 +120,7 @@
 import os
 
 import numpy as np
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, patches
 from sklearn.neighbors import KernelDensity
 from decimal import Decimal, getcontext
 
@@ -133,7 +133,7 @@ y_list = []
 folder_path = "Datas/VR_frame_50"
 file_list = os.listdir(folder_path)
 # print(os.path.join(folder_path, file_list[0]))
-file_path = os.path.join(folder_path, file_list[2])
+file_path = os.path.join(folder_path, file_list[1])
 with open(file_path, newline='') as file:
     eye_data_text = file.readlines()
     for line in eye_data_text:
@@ -150,10 +150,10 @@ coordinates = np.column_stack((x_list, y_list))
 # 示例眼动轨迹数据
 eye_tracking_data = np.array(coordinates)
 # print(eye_tracking_data)
-x=0.45
-y=0.5
-w=0.2
-h=0.2
+x=0.444
+y=0.49
+w=0.01+0.0005
+h=w*5
 rectangle_center = (x, y)
 rectangle_width = w
 rectangle_height = h
@@ -188,7 +188,9 @@ else:
     # 应用核密度估计
     kde = KernelDensity(bandwidth=0.1)
     kde.fit(region_data)
-
+    print("点数为：",region_data.size)
+    print(len(dict(region_data)))
+    print("密度为：",region_data.size/(w*100*h*100))
     # 计算密度值
     density_values = np.exp(kde.score_samples(region_data))
 
@@ -202,7 +204,6 @@ else:
     grid_points = np.column_stack([x.ravel(), y.ravel()])
     density_values = np.exp(kde.score_samples(grid_points))
     density_map = density_values.reshape(100, 100)
-
     # 可视化密度图和划定区域
     plt.contourf(x, y, density_map, cmap='viridis', levels=20)
     plt.scatter(region_data[:, 0], region_data[:, 1], c='red', s=10, edgecolor='black')
