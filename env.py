@@ -60,10 +60,10 @@ class Ad_Environment:
                 self.current_location_x=self.current_location_x+0.001
                 self.current_location_y=self.current_location_y
             elif action==4:  #放大
-                self.current_width=self.current_width+0.001
+                self.current_width=self.current_width+0.0005
                 self.current_height=self.current_width*self.aspect_ratio
             elif action==5:  #缩小
-                self.current_width=self.current_width-0.001
+                self.current_width=self.current_width-0.0005
                 self.current_height=self.current_width*self.aspect_ratio
             # elif action==6:   #旋转
             #     # self.current_location_x-=1
@@ -81,34 +81,36 @@ class Ad_Environment:
         if self.current_step>=self.total_step:
             done=True
             # print(self.density_layer)
-            self.density_layer=(self.density_layer+1)%20
+            # self.density_layer=(self.density_layer+1)%20
+            self.density_layer=self.density_layer+1
         return (self.current_location_x,self.current_location_y,self.current_width,self.current_height),reward,done
 
     def calculate_reward(self):
         #根据中心点和宽度、高度计算是否超出了限制区域
         if self.current_location_x+(self.current_width/2)>self.ad_limit_x+(self.ad_limit_width/2):
-            self.total_reward+=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*(-10)
+            self.total_reward=((self.current_location_x+self.current_width/2)-(self.ad_limit_x+self.ad_limit_width/2))*(-10)
             # print("111",self.total_reward)
         elif self.current_location_y+self.current_height/2>self.ad_limit_y+self.ad_limit_height/2:
-            self.total_reward+=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height/2))*(-10)
+            self.total_reward=((self.current_location_y+self.current_height/2)-(self.ad_limit_y+self.ad_limit_height/2))*(-10)
             # print("222", self.total_reward)
         elif self.current_location_x-self.current_width/2<self.ad_limit_x-self.ad_limit_width/2:
-            self.total_reward+=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*10
+            self.total_reward=((self.current_location_x-self.current_width/2)-(self.ad_limit_x-self.ad_limit_width/2))*10
             # print("333", self.total_reward)
         elif self.current_location_y-self.current_height/2<self.ad_limit_y-self.ad_limit_height/2:
-            self.total_reward+=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*10
+            self.total_reward=((self.current_location_y-self.current_height/2)-(self.ad_limit_y-self.ad_limit_height/2))*10
             # print("444", self.total_reward)
         elif self.salience_area(self.current_location_x, self.current_location_y, self.current_width,
                                         self.current_height)==0:
-            self.total_reward+=-100
+            self.total_reward=-100
         else:
-            density = self.area_density(self.current_location_x, self.current_location_y, self.current_width,
+            density = self.area_density_2(self.current_location_x, self.current_location_y, self.current_width,
                                         self.current_height)  # 计算该区域的密度
             # print("密度是：",density)
             density_difference = density - self.ad_density
             # if density_difference>0:
             #     density_difference = density_difference*5
-            self.total_reward = round(self.total_reward + round(density_difference, 12) / 100, 12)
+            # self.total_reward = round(self.total_reward + round(density_difference, 12) / 100, 12)
+            self.total_reward=density_difference
             self.ad_density = density
             # print("555",self.total_reward)
             # print("密度差异为：",density_difference)
@@ -134,11 +136,11 @@ class Ad_Environment:
         env = dict()
         x_list = []
         y_list = []
-        folder_path = "Datas/VR_frame_50"
+        folder_path = "Datas/Gaze_txt_files/p001/"
         file_list = os.listdir(folder_path)
         # print(os.path.join(folder_path, file_list[0]))
         # file_path=os.path.join(folder_path,file_list[self.density_layer])   #train
-        file_path = os.path.join(folder_path, file_list[20])  # test
+        file_path = os.path.join(folder_path, file_list[1])  # test
         # print(file_path)
         with open(file_path, newline='') as file:
             eye_data_text = file.readlines()
@@ -215,11 +217,12 @@ class Ad_Environment:
             env = dict()
             x_list = []
             y_list = []
-            folder_path = "Datas/VR_frame_50"
+            folder_path = "Datas/Gaze_files"
             file_list = os.listdir(folder_path)
             # print(os.path.join(folder_path, file_list[0]))
             # file_path=os.path.join(folder_path,file_list[self.density_layer])   #train
             file_path = os.path.join(folder_path, file_list[21])  # test
+
             # print(file_path)
             with open(file_path, newline='') as file:
                 eye_data_text = file.readlines()

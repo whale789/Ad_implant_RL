@@ -15,16 +15,16 @@ N_States=4  #状态数 12.27：x，y，width，height
 Memory_Capacity=2000 #记忆库容量
 Batch_size=33  #样本数量
 LR=0.001 #学习率
-Epsilon=0.9  #贪心策略
+Epsilon=0.8  #贪心策略
 Target_Replace_iter=100 #目标网络更新频率
 Gamma=0.9  #奖励折扣
 
 class DQNNet(torch.nn.Module):  #定义网络
     def __init__(self):
         super(DQNNet,self).__init__()
-        self.fc1=torch.nn.Linear(N_States,80)  #建立第一个全连接层，状态个数神经元到50个神经元
+        self.fc1=torch.nn.Linear(N_States,150)  #建立第一个全连接层，状态个数神经元到50个神经元
         self.fc1.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
-        self.out=torch.nn.Linear(80,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
+        self.out=torch.nn.Linear(150,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
         self.out.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
     def forward(self,x):   #x为状态
         x=F.relu(self.fc1(x))  #连接输入层到隐藏层，且使用激励函数Relu函数来处理经过隐藏层后的值
@@ -123,11 +123,11 @@ def main():
     episodes=2000
     dqn=DQN()
 
-    seed = 42
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+    # seed = 42
+    # random.seed(seed)
+    # np.random.seed(seed)
+    # torch.manual_seed(seed)
+    # torch.cuda.manual_seed_all(seed)
 
     ad_counter=5  #广告候选空间数量
 
@@ -135,59 +135,67 @@ def main():
     ad_heigth = 0.06
     ad_state_x = 0.44
     ad_state_y = 0.5
+
     layer=random.randint(0,ad_counter-1)
     # print(layer)
     ad_limit_x = 0.445
     ad_limit_y = 0.465
     ad_limit_width = 0.03
     ad_limit_height = 0.23
+
     density_layer=0
     env=Ad_Environment(ad_state_x,ad_state_y,layer,ad_counter,ad_width,ad_heigth,ad_limit_x,ad_limit_y,ad_limit_width,ad_limit_height,
                        total_step=100,ad_density=0)
     max_reward=float('-inf')
     for i in range(episodes):
-        print('Episodes:%s' %i)
-        s=env.reset()   #重置环境
-        # print('123',s)
-        episode_reward_sum=0
+        ad_width=random.uniform(0,ad_limit_width)
+        ad_heigth=random.uniform(0,ad_limit_height)
+        ad_state_x=random.uniform(ad_limit_x-ad_limit_width/2+ad_width/2,ad_limit_x+ad_limit_width/2-ad_width/2)
+        ad_state_y=random.uniform(ad_limit_y-ad_limit_height/2+ad_heigth/2,ad_limit_y+ad_limit_height/2-ad_heigth/2)
+        if ad_state_x+ad_width/2<ad_limit_x+ad_limit_width/2 and ad_state_x-ad_width/2>ad_limit_x-ad_limit_width/2 and ad_state_y+ad_heigth<ad_limit_y+ad_limit_height and ad_state_y-ad_heigth>ad_limit_y-ad_limit_height:
+            print('Episodes:%s' % i)
+            env = Ad_Environment(ad_state_x, ad_state_y, layer, ad_counter, ad_width, ad_heigth, ad_limit_x, ad_limit_y,
+                                 ad_limit_width, ad_limit_height,
+                                 total_step=100, ad_density=0)
+            s=env.reset()   #重置环境
+            # print('123',s)
+            episode_reward_sum=0
 
-        while True:
-            a=dqn.choose_action(s,way="train")
-            s_,r,done=env.step(a)
-            dqn.store_transition(s,a,r,s_)   #储存样本到数据库中
-            episode_reward_sum+=r  #逐步加上一个episodes内的每个step的reward
-            if r>0:
+            while True:
+                a=dqn.choose_action(s,way="train")
+                s_,r,done=env.step(a)
+                dqn.store_transition(s,a,r,s_)   #储存样本到数据库中
+                episode_reward_sum+=r  #逐步加上一个episodes内的每个step的reward
+                # if r>0:
                 s=s_ #更新状态
-            # print("action:",a)
-            if dqn.memory_counter>Memory_Capacity:
-                #开始学习（抽取记忆，即32个transition,对评估网络的参数进行更新，并且每个100次讲评估网络的参数赋给目标网络）
-                dqn.learn()
-                # print("学习")
-            if done:
-                print("episode:%s---episode-reward:%s" %(i,episode_reward_sum))
-                break
-        # print("111",episode_reward_sum)
-        model=DQNNet()
-        if episode_reward_sum>max_reward:
-            max_reward=episode_reward_sum
-            torch.save(model.state_dict(),"best_model_4.pth")
-
+                # print("action:",a)
+                if dqn.memory_counter>Memory_Capacity:
+                    #开始学习（抽取记忆，即32个transition,对评估网络的参数进行更新，并且每个100次讲评估网络的参数赋给目标网络）
+                    dqn.learn()
+                    # print("学习")
+                if done:
+                    print("episode:%s---episode-reward:%s" %(i,episode_reward_sum))
+                    break
+            # print("111",episode_reward_sum)
+            model=DQNNet()
+            if episode_reward_sum>max_reward:
+                max_reward=episode_reward_sum
+                torch.save(model.state_dict(), "best_model_4_use_it.pth")
+        else:
+            i=i-1
+            continue
 def test():
-    seed = 42
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+
     ad_counter = 5  # 广告候选空间数量
     dqn = DQN()
     # model=DQNNet()
-    DQNNet().load_state_dict(torch.load('best_model_4.pth'))
+    DQNNet().load_state_dict(torch.load('best_model_4_use_it.pth'))
     # model.eval()
     #(0.43,0.58) (0.46,0.35)
     ad_width = 0.01
     ad_heigth = 0.05
     ad_state_x = 0.444
-    ad_state_y = 0.49
+    ad_state_y = 0.45
     # ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
     # ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
     ad_limit_x = 0.445
@@ -196,16 +204,25 @@ def test():
     ad_limit_height = 0.23
     layer = random.randint(0, ad_counter - 1)
     # print(layer)
-    env = Ad_Environment(ad_state_x, ad_state_y, layer, ad_counter, ad_width, ad_heigth, ad_limit_x, ad_limit_y,
-                         ad_limit_width, ad_limit_height,
-                         total_step=100, ad_density=0)
+
     finally_state=[]
     # for i in range(22):
     dqn = DQN()
     # model=DQNNet()
     # DQNNet().load_state_dict(torch.load('best_model.pth'))
-    s=env.reset()
+
     ep_reward=0
+    ad_width = random.uniform(0.005, ad_limit_width)
+    ad_heigth = random.uniform(0.01, ad_limit_height)
+    ad_state_x = random.uniform(ad_limit_x - ad_limit_width / 2 + ad_width / 2,
+                                ad_limit_x + ad_limit_width / 2 - ad_width / 2)
+    ad_state_y = random.uniform(ad_limit_y - ad_limit_height / 2 + ad_heigth / 2,
+                                ad_limit_y + ad_limit_height / 2 - ad_heigth / 2)
+    env = Ad_Environment(ad_state_x, ad_state_y, layer, ad_counter, ad_width, ad_heigth, ad_limit_x, ad_limit_y,
+                         ad_limit_width, ad_limit_height,
+                         total_step=100, ad_density=0)
+    s = env.reset()
+
     while True:
         a=dqn.choose_action(s,way="test")
         print("动作：",a)
@@ -235,7 +252,7 @@ def test():
     # 将字符串再转换回元组
     unique_list = [eval(t) for t in unique_list]
     image_path = "0000.png"
-    output_path = "0000_test.jpg"
+    output_path = "0000_test_0.jpg"
     image = Image.open(image_path)
     color = (255, 0, 0)
     color1=(0,255,0)

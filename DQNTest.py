@@ -130,10 +130,10 @@ getcontext().rounding = "ROUND_HALF_UP"  # 设置舍入模式为四舍五入
 env = dict()
 x_list = []
 y_list = []
-folder_path = "Datas/VR_frame_50"
+folder_path = "Datas/Gaze_files"
 file_list = os.listdir(folder_path)
 # print(os.path.join(folder_path, file_list[0]))
-file_path = os.path.join(folder_path, file_list[1])
+file_path = os.path.join(folder_path, file_list[15])
 with open(file_path, newline='') as file:
     eye_data_text = file.readlines()
     for line in eye_data_text:
@@ -150,9 +150,9 @@ coordinates = np.column_stack((x_list, y_list))
 # 示例眼动轨迹数据
 eye_tracking_data = np.array(coordinates)
 # print(eye_tracking_data)
-x=0.444
-y=0.49
-w=0.01+0.0005
+x=0.5
+y=0.5
+w=0.01
 h=w*5
 rectangle_center = (x, y)
 rectangle_width = w
