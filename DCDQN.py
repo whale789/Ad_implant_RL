@@ -6,8 +6,7 @@ import torch.nn
 import torch.nn.functional as F
 
 from env import Ad_Environment
-import model_test
-import matplotlib.pyplot as plt
+
 from PIL import Image, ImageDraw
 
 N_Actions=6  #动作数
@@ -15,16 +14,16 @@ N_States=4  #状态数 12.27：x，y，width，height
 Memory_Capacity=2000 #记忆库容量
 Batch_size=33  #样本数量
 LR=0.001 #学习率
-Epsilon=0.8  #贪心策略
+Epsilon=0.9  #贪心策略
 Target_Replace_iter=100 #目标网络更新频率
 Gamma=0.9  #奖励折扣
 
 class DQNNet(torch.nn.Module):  #定义网络
     def __init__(self):
         super(DQNNet,self).__init__()
-        self.fc1=torch.nn.Linear(N_States,150)  #建立第一个全连接层，状态个数神经元到50个神经元
+        self.fc1=torch.nn.Linear(N_States,80)  #建立第一个全连接层，状态个数神经元到50个神经元
         self.fc1.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
-        self.out=torch.nn.Linear(150,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
+        self.out=torch.nn.Linear(80,N_Actions) #建立第二个全连接层，50个神经元到动作个数神经元
         self.out.weight.data.normal_(0,0.1)   #权重初始化，均值为0，方差为0.1的正态分布
     def forward(self,x):   #x为状态
         x=F.relu(self.fc1(x))  #连接输入层到隐藏层，且使用激励函数Relu函数来处理经过隐藏层后的值
@@ -123,11 +122,7 @@ def main():
     episodes=2000
     dqn=DQN()
 
-    # seed = 42
-    # random.seed(seed)
-    # np.random.seed(seed)
-    # torch.manual_seed(seed)
-    # torch.cuda.manual_seed_all(seed)
+
 
     ad_counter=5  #广告候选空间数量
 
@@ -180,30 +175,35 @@ def main():
             model=DQNNet()
             if episode_reward_sum>max_reward:
                 max_reward=episode_reward_sum
-                torch.save(model.state_dict(), "best_model_4_use_it.pth")
+                torch.save(model.state_dict(), "best_model_4.pth")
         else:
             i=i-1
             continue
 def test():
-
+    # seed = 10
+    # random.seed(seed)
+    # np.random.seed(seed)
+    # torch.manual_seed(seed)
+    # torch.cuda.manual_seed_all(seed)
     ad_counter = 5  # 广告候选空间数量
     dqn = DQN()
     # model=DQNNet()
     DQNNet().load_state_dict(torch.load('best_model_4_use_it.pth'))
     # model.eval()
     #(0.43,0.58) (0.46,0.35)
-    ad_width = 0.01
+    ad_width = 0.015
     ad_heigth = 0.05
-    ad_state_x = 0.444
-    ad_state_y = 0.45
+    ad_state_x = 0.27
+    ad_state_y = 0.4
     # ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
     # ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
-    ad_limit_x = 0.445
-    ad_limit_y = 0.465
-    ad_limit_width = 0.03
-    ad_limit_height = 0.23
-    layer = random.randint(0, ad_counter - 1)
+    ad_limit_x = 0.282
+    ad_limit_y = 0.4
+    ad_limit_width = 0.05
+    ad_limit_height = 0.14
+    # layer = random.randint(0, ad_counter - 1)
     # print(layer)
+    layer=1
 
     finally_state=[]
     # for i in range(22):
@@ -212,12 +212,12 @@ def test():
     # DQNNet().load_state_dict(torch.load('best_model.pth'))
 
     ep_reward=0
-    ad_width = random.uniform(0.005, ad_limit_width)
-    ad_heigth = random.uniform(0.01, ad_limit_height)
-    ad_state_x = random.uniform(ad_limit_x - ad_limit_width / 2 + ad_width / 2,
-                                ad_limit_x + ad_limit_width / 2 - ad_width / 2)
-    ad_state_y = random.uniform(ad_limit_y - ad_limit_height / 2 + ad_heigth / 2,
-                                ad_limit_y + ad_limit_height / 2 - ad_heigth / 2)
+    # ad_width = random.uniform(0.005, ad_limit_width)
+    # ad_heigth = random.uniform(0.01, ad_limit_height)
+    # ad_state_x = random.uniform(ad_limit_x - ad_limit_width / 2 + ad_width / 2,
+    #                             ad_limit_x + ad_limit_width / 2 - ad_width / 2)
+    # ad_state_y = random.uniform(ad_limit_y - ad_limit_height / 2 + ad_heigth / 2,
+    #                             ad_limit_y + ad_limit_height / 2 - ad_heigth / 2)
     env = Ad_Environment(ad_state_x, ad_state_y, layer, ad_counter, ad_width, ad_heigth, ad_limit_x, ad_limit_y,
                          ad_limit_width, ad_limit_height,
                          total_step=100, ad_density=0)
@@ -229,15 +229,17 @@ def test():
         s_, r, done = env.step(a)
         dqn.store_transition(s, a, r, s_)  # 储存样本到数据库中
         ep_reward += r
-
+        print(r)
         if r<0:
             print("最后位置为：", s_)
+            print("累积奖励：",ep_reward-r)
             break
-        print(r)
+
         s = s_
         # print("111",s_)
         if done:
             print("最后位置为：",s_)
+            print("累积奖励：", ep_reward-r)
             break
     ad_state_x_=s[0]
     ad_state_y_=s[1]
@@ -251,8 +253,8 @@ def test():
 
     # 将字符串再转换回元组
     unique_list = [eval(t) for t in unique_list]
-    image_path = "0000.png"
-    output_path = "0000_test_0.jpg"
+    image_path = "Datas/Testing_scenarios/ad7.png"
+    output_path = "0000_test_7.jpg"
     image = Image.open(image_path)
     color = (255, 0, 0)
     color1=(0,255,0)
@@ -298,7 +300,7 @@ def test():
     # ad_state_y=s[1]
     # ad_width=s[2]
     # ad_heigth = s[3]
-    # input_image_path = "0000.png"
+    # input_image_path = "ad1.png"
     # output_image_path = "0000_test.jpg"
     # normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
     # normalized_top_right1 = (ad_limit_x+ad_limit_width/2, ad_limit_y-ad_limit_height/2)

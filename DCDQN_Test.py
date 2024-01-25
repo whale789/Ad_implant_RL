@@ -87,7 +87,7 @@
 #     #     thread = Thread(target=main, args={img, })
 #     #     thread.start()
 #
-#     file = "Datas/0000.png"
+#     file = "Datas/ad1.png"
 #     main(file)
 #
 #
@@ -100,7 +100,7 @@ from decimal import getcontext
 # import numpy as np
 #
 # # 读取图像
-# image = cv2.imread('0000.png')
+# image = cv2.imread('ad1.png')
 # # image = np.float64(image)
 # # 转换图像为灰度
 # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

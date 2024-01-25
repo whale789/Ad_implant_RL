@@ -136,11 +136,11 @@ class Ad_Environment:
         env = dict()
         x_list = []
         y_list = []
-        folder_path = "Datas/Gaze_txt_files/p001/"
+        folder_path = "Datas/VR_frame_50"
         file_list = os.listdir(folder_path)
         # print(os.path.join(folder_path, file_list[0]))
         # file_path=os.path.join(folder_path,file_list[self.density_layer])   #train
-        file_path = os.path.join(folder_path, file_list[1])  # test
+        file_path = os.path.join(folder_path, file_list[20])  # test
         # print(file_path)
         with open(file_path, newline='') as file:
             eye_data_text = file.readlines()
