@@ -47,24 +47,25 @@ class Ad_Environment:
             # self.current_location_x = self.ad_state_x
             # self.current_location_y = self.ad_state_y
             # print("222",self.current_location_x)
-            if action==0:  #向上平移
-               self.current_location_x=self.current_location_x
-               self.current_location_y=self.current_location_y+0.001
-            elif action==1:  #向下平移
-                self.current_location_x=self.current_location_x
-                self.current_location_y=self.current_location_y-0.001
-            elif action==2:  #向左平移
-                self.current_location_x=self.current_location_x-0.001
-                self.current_location_y=self.current_location_y
-            elif action==3:     #向右平移
-                self.current_location_x=self.current_location_x+0.001
-                self.current_location_y=self.current_location_y
-            elif action==4:  #放大
+            if action==0:  #放大
                 self.current_width=self.current_width+0.0005
                 self.current_height=self.current_width*self.aspect_ratio
-            elif action==5:  #缩小
+            elif action==1:  #缩小
                 self.current_width=self.current_width-0.0005
                 self.current_height=self.current_width*self.aspect_ratio
+            elif action==2:  #向上平移
+               self.current_location_x=self.current_location_x
+               self.current_location_y=self.current_location_y+0.001
+            elif action==3:  #向下平移
+                self.current_location_x=self.current_location_x
+                self.current_location_y=self.current_location_y-0.001
+            elif action==4:  #向左平移
+                self.current_location_x=self.current_location_x-0.001
+                self.current_location_y=self.current_location_y
+            elif action==5:     #向右平移
+                self.current_location_x=self.current_location_x+0.001
+                self.current_location_y=self.current_location_y
+
             # elif action==6:   #旋转
             #     # self.current_location_x-=1
             #     pass
@@ -231,7 +232,7 @@ class Ad_Environment:
                     frame, forward_x, forward_y, eye_x, eye_y = int(eye_list[1]), float(eye_list[3]), float(
                         eye_list[4]), float(eye_list[6]), float(eye_list[7])
                     env[frame] = {'frame': frame, 'forward_x': forward_x, 'forward_y': forward_y, 'eye_x': eye_x,
-                                  'eye_y': eye_x}
+                                  'eye_y': eye_y}
                     x_list.append(float(eye_list[6]))
                     y_list.append(float(eye_list[7]))
 

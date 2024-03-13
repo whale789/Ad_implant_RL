@@ -175,7 +175,7 @@ def main():
             model=DQNNet()
             if episode_reward_sum>max_reward:
                 max_reward=episode_reward_sum
-                torch.save(model.state_dict(), "best_model_4.pth")
+                torch.save(model.state_dict(), "best_model_5.pth")
         else:
             i=i-1
             continue
@@ -192,15 +192,16 @@ def test():
     # model.eval()
     #(0.43,0.58) (0.46,0.35)
     ad_width = 0.015
-    ad_heigth = 0.05
-    ad_state_x = 0.27
-    ad_state_y = 0.4
+    ad_heigth = 0.06
+    ad_state_x = 0.44
+    ad_state_y = 0.45
     # ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
     # ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
-    ad_limit_x = 0.282
-    ad_limit_y = 0.4
-    ad_limit_width = 0.05
-    ad_limit_height = 0.14
+    ad_limit_x = 0.445
+    ad_limit_y = 0.465
+    ad_limit_width = 0.03
+    ad_limit_height = 0.23
+
     # layer = random.randint(0, ad_counter - 1)
     # print(layer)
     layer=1
@@ -253,8 +254,8 @@ def test():
 
     # 将字符串再转换回元组
     unique_list = [eval(t) for t in unique_list]
-    image_path = "Datas/Testing_scenarios/ad7.png"
-    output_path = "0000_test_7.jpg"
+    image_path = "Datas/Testing_scenarios/ad1.png"
+    output_path = "0000_test_11.jpg"
     image = Image.open(image_path)
     color = (255, 0, 0)
     color1=(0,255,0)

@@ -130,7 +130,7 @@ getcontext().rounding = "ROUND_HALF_UP"  # 设置舍入模式为四舍五入
 env = dict()
 x_list = []
 y_list = []
-folder_path = "Datas/Gaze_files"
+folder_path = "Datas/VR_frame_50"
 file_list = os.listdir(folder_path)
 # print(os.path.join(folder_path, file_list[0]))
 file_path = os.path.join(folder_path, file_list[15])
@@ -186,7 +186,7 @@ if region_data.size == 0:
     print("密度为0")
 else:
     # 应用核密度估计
-    kde = KernelDensity(bandwidth=0.1)
+    kde = KernelDensity(bandwidth=0.2)
     kde.fit(region_data)
     print("点数为：",region_data.size)
     print(len(dict(region_data)))
