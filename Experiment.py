@@ -1,4 +1,4 @@
-
+import math
 import os
 from decimal import getcontext
 from PIL import Image, ImageDraw
@@ -31,8 +31,9 @@ def plot_bar_chart(categories, values1, values2, title, xlabel, ylabel):
 
 folder_path = "Datas/Experiment_Data"
 file_list = os.listdir(folder_path)
-file_path = os.path.join(folder_path, file_list[4])
+file_path = os.path.join(folder_path, file_list[12])
 def density_calculation(ad_id,x,y,w,h):
+    # print(x,y,w,h)
     env = dict()
     x_list = []
     y_list = []
@@ -52,22 +53,27 @@ def density_calculation(ad_id,x,y,w,h):
                 # y_list.append(float(eye_list[9]))
                 # x_list.append(float(eye_list[11]))
                 # y_list.append(float(eye_list[12]))
-                x_list.append([float(eye_list[8]),float(eye_list[9])])
-                x_list.append([float(eye_list[11]),float(eye_list[12])])
+                # x_list.append([float(eye_list[8]),float(eye_list[9])])
+                # x_list.append([float(eye_list[11]),float(eye_list[12])])
+                x1=(float(eye_list[8]) + float(eye_list[11])) / 2
+                y1=(float(eye_list[9]) + float(eye_list[12])) / 2
+                # x1=(x1-0.5)*(110/180)*np.pi
+                # y1=(y1-0.5)*(110/180)*np.pi
+                x_list.append([x1,y1])
             i+=1
     # 模拟眼动轨迹数据（归一化坐标）
     # coordinates = np.column_stack((x_list, y_list))
     # eye_tracking_data = np.array(coordinates)
-    img_path = 'Datas/Testing_scenarios/ad2.png'
-    img = Image.open(img_path)
-    img_width, img_height = img.size
-
-    ad2_x=(x-0.5)*2
-    ad2_y=(y-0.5)*2
-    w=w*2
-    h=h*2
-    x=ad2_x
-    y=ad2_y
+    # img_path = 'Datas/Testing_scenarios/ad2.png'
+    # img = Image.open(img_path)
+    # img_width, img_height = img.size
+    # x_left=(x-w/2)*2*np.pi-np.pi
+    # y_bootom=(1-y-h/2)*np.pi-0.5*np.pi
+    # x_right=(x+w/2)*2*np.pi-np.pi
+    # y_top=(1-y+h/2)*np.pi-0.5*np.pi
+    # print("球形坐标：",(x,y))
+    x=x/6
+    y=y-0.05
     rectangle_center = (x, y)
     rectangle_width = w
     rectangle_height = h
@@ -75,16 +81,18 @@ def density_calculation(ad_id,x,y,w,h):
     right_bound = rectangle_center[0] + rectangle_width / 2
     top_bound = rectangle_center[1] + rectangle_height / 2
     bottom_bound = rectangle_center[1] - rectangle_height / 2
-
+    # if x_left>x_right:
+    #     x_left,x_right=x_right,x_left
+    # if y_bootom>y_top:
+    #     y_bottom,y_top=y_top,y_bootom
+    # left_bound = x_left
+    # right_bound = x_right
+    # top_bound = y_top
+    # bottom_bound = y_bootom
 
     # 划定区域的边界
     region_bounds = [(left_bound, bottom_bound), (right_bound, top_bound)]  # 替换为实际的区域边界
-    # print(region_bounds)
     # 筛选出划定区域内的眼动轨迹数据
-    # region_data = eye_tracking_data[(eye_tracking_data[:, 0] >= region_bounds[0][0]) &
-    #                                 (eye_tracking_data[:, 0] <= region_bounds[0][1]) &
-    #                                 (eye_tracking_data[:, 1] >= region_bounds[1][0]) &
-    #                                 (eye_tracking_data[:, 1] <= region_bounds[1][1])]
     region_data=[]
     count=0
     for eye in x_list:
@@ -92,7 +100,7 @@ def density_calculation(ad_id,x,y,w,h):
         if eye[0]>=region_bounds[0][0] and eye[0]<=region_bounds[1][0] and eye[1]>=region_bounds[0][1] and eye[1]<=region_bounds[1][1]:
             region_data.append([eye[0],eye[1]])
             count+=1
-    # print(count)
+    # print(region_data)
     if len(region_data) == 0:
         # print("0")
         return 0,0
@@ -103,7 +111,7 @@ def density_calculation(ad_id,x,y,w,h):
 
 
 ad_list=["ad1","ad2","ad3","ad4",'ad5','ad6','ad7']
-ad_xy_list=[[0.45,0.455,0.02,0.08],[0.44,0.45,0.0535,0.2675],[0.425,0.53,0.01,0.05],[0.43,0.63,0.035,0.055],[0.205,0.548,0.007,0.03],[0.55,0.5,0.07,0.21],[0.265,0.4,0.015,0.05]]
+ad_xy_list=[[0.45,0.455,0.02,0.08],[0.44,0.45,0.04,0.15],[0.425,0.53,0.01,0.05],[0.43,0.5,0.04,0.053],[0.12,0.54,0.03,0.08],[0.55,0.5,0.07,0.21],[0.282,0.4,0.0255,0.0714]]
 add_ad_list=["ad81","ad82","ad83","ad84",'ad85','ad86','ad87']
 ad_count=[]
 ad_density=[]

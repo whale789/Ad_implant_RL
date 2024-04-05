@@ -5,7 +5,7 @@ import numpy as np
 import torch.nn
 import torch.nn.functional as F
 
-from env import Ad_Environment
+from Env import Ad_Environment
 
 from PIL import Image, ImageDraw
 
@@ -188,19 +188,19 @@ def test():
     ad_counter = 5  # 广告候选空间数量
     dqn = DQN()
     # model=DQNNet()
-    DQNNet().load_state_dict(torch.load('best_model_4_use_it.pth'))
+    DQNNet().load_state_dict(torch.load('models/best_model_4_use_it.pth'))
     # model.eval()
     #(0.43,0.58) (0.46,0.35)
-    ad_width = 0.015
-    ad_heigth = 0.06
-    ad_state_x = 0.44
-    ad_state_y = 0.45
+    ad_width = 0.025
+    ad_heigth = 0.07
+    ad_state_x = 0.282
+    ad_state_y = 0.4
     # ad_state_x = [random.uniform(0.3 + ad_width / 2, 0.8 - (ad_heigth / 2)) for _ in range(ad_counter)]
     # ad_state_y = [random.uniform(0.2 + ad_heigth / 2, 0.7 - (ad_heigth / 2)) for _ in range(ad_counter)]
-    ad_limit_x = 0.445
-    ad_limit_y = 0.465
-    ad_limit_width = 0.03
-    ad_limit_height = 0.23
+    ad_limit_x = 0.282
+    ad_limit_y = 0.4
+    ad_limit_width = 0.05
+    ad_limit_height = 0.14
 
     # layer = random.randint(0, ad_counter - 1)
     # print(layer)
@@ -254,7 +254,7 @@ def test():
 
     # 将字符串再转换回元组
     unique_list = [eval(t) for t in unique_list]
-    image_path = "Datas/Testing_scenarios/ad1.png"
+    image_path = "Datas/Testing_scenarios/ad7.png"
     output_path = "0000_test_11.jpg"
     image = Image.open(image_path)
     color = (255, 0, 0)
@@ -302,7 +302,7 @@ def test():
     # ad_width=s[2]
     # ad_heigth = s[3]
     # input_image_path = "ad1.png"
-    # output_image_path = "0000_test.jpg"
+    # output_image_path = "0000_test_0.jpg"
     # normalized_bottom_left1 = (ad_limit_x-(ad_limit_width/2), ad_limit_y+(ad_limit_height/2))
     # normalized_top_right1 = (ad_limit_x+ad_limit_width/2, ad_limit_y-ad_limit_height/2)
     # normalized_bottom_left2 = (ad_state_x-ad_width/2, ad_state_y+ad_heigth/2)
