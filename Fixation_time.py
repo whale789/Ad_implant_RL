@@ -1,9 +1,8 @@
 
+from datetime import datetime
 from math import sqrt, atan2, degrees
 import os
-
 from matplotlib import pyplot as plt
-
 
 def plot_bar_chart(categories, values1, values2, title, xlabel, ylabel):
     x = range(len(categories))
@@ -14,7 +13,7 @@ def plot_bar_chart(categories, values1, values2, title, xlabel, ylabel):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.xticks([i + 0.2 for i in x], categories)
+    plt.xticks([i for i in x], categories)
     plt.legend()
 
     plt.rcParams['font.sans-serif'] = ['Kaitt', 'SimHei']
@@ -23,41 +22,47 @@ def plot_bar_chart(categories, values1, values2, title, xlabel, ylabel):
     plt.rcParams['axes.unicode_minus'] = False
     plt.tight_layout()
     plt.show()
+def time_fixate(time1,time2):
+    times= [time1, time2]
+    time_format = "%m月%d日%H:%M:%S:%f"
+    datetime_objects = [datetime.strptime(time, time_format) for time in times]
+    time_diffs_ms = (datetime_objects[1] - datetime_objects[0]).microseconds / 1000
+    return time_diffs_ms
 
-def count_sum(ad_id,x,y,w,h):
-    count=0
-    for index in data_fin:
-        if ad_id==index[0]:
+
+def count_time(ad_id,x,y,w,h):
+    time_c=0
+    for ii in range(len(data_fin)-1):
+        if ad_id==data_fin[ii][0]:
             # print(index[0])
-            if x-w/2<=index[1]<=x+w/2 and y-h/2<=index[2]<=y+h/2:
-                count+=1
-    return count
+            if x-w/2<=data_fin[ii][1]<=x+w/2 and y-h/2<=data_fin[ii][2]<=y+h/2:
+                time_c+=time_fixate(data_fin[ii][3],data_fin[ii+1][3])
+    return time_c
 
 
+
+# print(objects)
+data_fin=[]
 folder_path = "Datas/Experiment_Data"
+ad_time_count = [0,0,0,0,0]
+add_ad_time_count=[0,0,0,0,0]
+time_count1_list = []
+time_count2_list = []
 file_count=0
-count1_list = []
-count2_list = []
-ad_count = [0,0,0,0,0]
-add_ad_count=[0,0,0,0,0]
 ad_list = ["ad1", "ad2", "ad3", "ad4", 'ad6']
 ad_xy_list = [[0.45, 0.455, 0.02, 0.08], [0.44, 0.45, 0.04, 0.15], [0.425, 0.53, 0.01, 0.05],
               [0.43, 0.5, 0.04, 0.053], [0.55, 0.5, 0.07, 0.21]]
 add_ad_list = ["ad81", "ad82", "ad83", "ad84", 'ad86', ]
 for file_name in os.listdir(folder_path):
     file_path = os.path.join(folder_path, file_name)
-    x_list = []
-    count1 = 0
-    count2 = 0
-    data_fin=[]
     file_count += 1
-    with open(file_path, newline='', encoding='gb18030', errors='ignore') as file:
+    with open(file_path, newline='', encoding='utf-8', errors='ignore') as file:
         eye_data_text = file.readlines()
         env = dict()
         i = 0
         for line in eye_data_text:
             # 解析数据中的旋转欧拉角（弧度）
-            _, ad_id, _, _, _, rotation_x, rotation_y, rotation_z, _, left_eye_x, left_eye_y, _, right_eye_x, right_eye_y = line.split(",")
+            ad_time, ad_id, _, _, _, rotation_x, rotation_y, rotation_z, _, left_eye_x, left_eye_y, _, right_eye_x, right_eye_y = line.split(",")
 
             # 给定的四元数x, y, z值
             rotation_x, rotation_y, rotation_z = float(rotation_x), float(rotation_y), float(rotation_z)
@@ -110,23 +115,18 @@ for file_name in os.listdir(folder_path):
 
             x_fin=(erp_coordinates[0][0]+erp_coordinates[1][0])/2/8192
             y_fin=(erp_coordinates[0][1]+erp_coordinates[1][1])/2/4096
-            data_fin.append((ad_id,x_fin,y_fin))
+            data_fin.append((ad_id,x_fin,y_fin,ad_time))
+    # print(data_fin)
+
 
     for i in range(len(ad_list)):
-        count1=count_sum(ad_list[i],ad_xy_list[i][0],ad_xy_list[i][1],ad_xy_list[i][2],ad_xy_list[i][3])
-        count2=count_sum(add_ad_list[i],ad_xy_list[i][0],ad_xy_list[i][1],ad_xy_list[i][2],ad_xy_list[i][3])
-        ad_count[i]+=count1
-        add_ad_count[i]+=count2
-        print(ad_list[i],count1)
-        print(add_ad_list[i],count2)
-        count1_list.append(count1)
-        count2_list.append(count2)
-
-for i in range(len(ad_count)):
-    ad_count[i]=ad_count[i]/file_count
-    add_ad_count[i]=add_ad_count[i]/file_count
-    ad_count[i]=ad_count[i]/(ad_xy_list[i][2]*ad_xy_list[i][3]*1000)
-    add_ad_count[i]=add_ad_count[i]/(ad_xy_list[i][2]*ad_xy_list[i][3]*1000)
-# plot_bar_chart(ad_list, ad_count, add_ad_count, "Eye movement density comparison", "Advertisement serial number", "Eye movement density")
-# print(data_fin)
-plot_bar_chart(ad_list, ad_count, add_ad_count, "眼动密度对比", "广告序号", "眼动密度")
+        count1=count_time(ad_list[i],ad_xy_list[i][0],ad_xy_list[i][1],ad_xy_list[i][2],ad_xy_list[i][3])
+        count2=count_time(add_ad_list[i],ad_xy_list[i][0],ad_xy_list[i][1],ad_xy_list[i][2],ad_xy_list[i][3])
+        ad_time_count[i]+=count1
+        add_ad_time_count[i]+=count2
+        time_count1_list.append(count1)
+        time_count2_list.append(count2)
+for i in range(len(ad_time_count)):
+    ad_time_count[i]=ad_time_count[i]/file_count/1000
+    add_ad_time_count[i]=add_ad_time_count[i]/file_count/1000
+plot_bar_chart(ad_list, ad_time_count, add_ad_time_count, "注视时间对比", "广告序号", "注视时间  /秒")

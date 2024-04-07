@@ -43,8 +43,8 @@ def density_calculation(ad_id,x,y,w,h):
         for line in eye_data_text:
             eye_list = line.split(',')
             ad=eye_list[1]
-            left_eye_x, left_eye_y, right_eye_x, right_eye_y = float(eye_list[8]), float(
-                eye_list[9]), float(eye_list[11]), float(eye_list[12])
+            left_eye_x, left_eye_y, right_eye_x, right_eye_y = float(eye_list[9]), float(
+                eye_list[10]), float(eye_list[12]), float(eye_list[13])
             env[i] = {"ad":ad,'left_eye_x': left_eye_x, 'left_eye_y': left_eye_y, 'right_eye_x': right_eye_x,
                           'right_eye_y': right_eye_y}
             if ad==ad_id:
@@ -55,8 +55,8 @@ def density_calculation(ad_id,x,y,w,h):
                 # y_list.append(float(eye_list[12]))
                 # x_list.append([float(eye_list[8]),float(eye_list[9])])
                 # x_list.append([float(eye_list[11]),float(eye_list[12])])
-                x1=(float(eye_list[8]) + float(eye_list[11])) / 2
-                y1=(float(eye_list[9]) + float(eye_list[12])) / 2
+                x1=(float(eye_list[9]) + float(eye_list[10])) / 2
+                y1=(float(eye_list[9]) + float(eye_list[10])) / 2
                 # x1=(x1-0.5)*(110/180)*np.pi
                 # y1=(y1-0.5)*(110/180)*np.pi
                 x_list.append([x1,y1])

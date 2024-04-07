@@ -36,7 +36,7 @@ def count_sum(ad_id,x,y,w,h):
 
 folder_path = "Datas/Experiment_Data"
 file_list = os.listdir(folder_path)
-file_path = os.path.join(folder_path, file_list[5])
+file_path = os.path.join(folder_path, file_list[10])
 x_list = []
 count1 = 0
 count2 = 0
